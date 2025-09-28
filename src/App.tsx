@@ -1,37 +1,32 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
-import { Button } from "@/components/ui/button";
 import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0);
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+      <div className="flex h-screen bg-gray-200 font-roboto">
+        <div className="flex">
+          <div className="hidden fixed inset-0 z-20 transition-opacity bg-black opacity-50 lg:hidden"></div>
+          <div
+            className="-translate-x-full ease-in fixed inset-y-0 left-0 z-30 w-96
+        overflow-y-auto transition duration-300 transform bg-white lg:translate-x-0 lg:static lg:inset-0"
+          >
+            <ul>
+              <li>Test data</li>
+              <li></li>
+              <li></li>
+              <li></li>
+              <li></li>
+              <li></li>
+            </ul>
+          </div>
+        </div>
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <main className="flex flex-col flex-1 overflow-x-hidden overflow-y-auto bg-gray-200">
+            <p>Map</p>
+          </main>
+        </div>
       </div>
-      <h1>Vite + React</h1>
-      <div className="flex flex-wrap items-center justify-center gap-2 md:flex-row">
-        <Button>Button</Button>
-      </div>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
   );
 }
