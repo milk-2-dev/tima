@@ -142,6 +142,7 @@ function Header() {
                 placeholder="0"
                 type="text"
                 inputMode="decimal"
+                disabled={!selectedCity}
                 value={cityRadiusValue}
                 onChange={(e) => {
                   const value = e.target.value;
