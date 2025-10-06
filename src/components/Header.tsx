@@ -1,4 +1,6 @@
 import { Input } from "@/components/ui/input";
+import { useId } from "react";
+
 import {
   Select,
   SelectContent,
@@ -20,30 +22,44 @@ export type City = {
 };
 
 function Header() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams(); // city, radius, interest, date
 
-  const [searchValue, setSearchValue] = useState<string>("");
-  const [selectedValue, setSelectedValue] = useState<City | null>(null);
+  const [searchCityValue, setSearchCityValue] = useState<string>("");
+  const [selectedCity, setSelectedCity] = useState<City | null>(null);
+  const [cityRadiusValue, setCityRadiusValue] = useState<number>(0);
+  const [selectedCityRadius, setSelectedCityRadius] = useState<number>(0);
 
   useEffect(() => {
-    const search = searchParams.get("city") || "";
+    const cityParam = searchParams.get("city") || "";
+    const radiusParam = searchParams.get("radius") || "";
 
-    if (search && search !== selectedValue?.value) {
-      const city = cities.find((c) => c.value === search);
+    if (cityParam && cityParam !== selectedCity?.value) {
+      const city = cities.find((c) => c.value === cityParam);
 
       if (city) {
-        setSelectedValue(city);
-        setSearchValue(city.label);
+        setSelectedCity(city);
+        setSearchCityValue(city.label);
       }
+    }
+
+    if (radiusParam && radiusParam !== selectedCityRadius.toString()) {
+      setCityRadiusValue(Number(radiusParam));
     }
   }, [searchParams]);
 
   useEffect(() => {
-    if (selectedValue) {
-      searchParams.set("city", selectedValue.value);
+    if (selectedCity) {
+      searchParams.set("city", selectedCity.value);
       setSearchParams(searchParams);
     }
-  }, [selectedValue]);
+  }, [selectedCity]);
+
+  useEffect(() => {
+    if (selectedCityRadius) {
+      searchParams.set("radius", selectedCityRadius.toString());
+      setSearchParams(searchParams);
+    }
+  }, [selectedCityRadius]);
 
   const cities = [
     { value: "kyiv", label: "Київ" },
@@ -56,15 +72,17 @@ function Header() {
   ];
 
   const filteredCities = useMemo(() => {
-    if (searchValue.length === 0) {
+    if (searchCityValue.length === 0) {
       return cities.slice(0, 10); // Показать первые 10 городов, если строка поиска пуста
     }
     return cities
       .filter(({ label }) =>
-        label.toLowerCase().includes(searchValue.toLowerCase())
+        label.toLowerCase().includes(searchCityValue.toLowerCase())
       )
       .slice(0, 10); // Ограничиваем количество подсказок
-  }, [searchValue]);
+  }, [searchCityValue]);
+
+  const id = useId();
 
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
@@ -72,19 +90,41 @@ function Header() {
         <div className="flex w-full gap-4 sm:justify-between">
           <div className="flex w-3/12">
             <LocationFilter
-              selectedValue={selectedValue}
-              onSelectedValueChange={setSelectedValue}
-              searchValue={searchValue}
-              onSearchValueChange={setSearchValue}
+              selectedValue={selectedCity}
+              onSelectedValueChange={setSelectedCity}
+              searchValue={searchCityValue}
+              onSearchValueChange={setSearchCityValue}
               items={filteredCities ?? []}
               // isLoading={isLoading}
             />
 
             <div className="relative -ms-px w-3/8">
               <Input
-                type="text"
+                id={id}
                 className="rounded-s-none shadow-none [direction:inherit] peer pe-8 text-right"
                 placeholder="0"
+                type="text"
+                inputMode="decimal"
+                value={cityRadiusValue}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (/^\d*$/.test(value)) {
+                    setCityRadiusValue(Number(value));
+                  }
+                }}
+                onBlur={() => {
+                  if (selectedCityRadius !== cityRadiusValue) {
+                    setSelectedCityRadius(cityRadiusValue);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    if (selectedCityRadius !== cityRadiusValue) {
+                      setSelectedCityRadius(cityRadiusValue);
+                    }
+                  }
+                }}
+                aria-label="Enter radius in kilometers"
               />
               <span className="text-muted-foreground pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-3 text-sm peer-disabled:opacity-50">
                 km
@@ -93,7 +133,7 @@ function Header() {
           </div>
           <div>
             <Select>
-              <SelectTrigger id="location">
+              <SelectTrigger id="interest">
                 <SelectValue placeholder="Chess" />
               </SelectTrigger>
               <SelectContent>
