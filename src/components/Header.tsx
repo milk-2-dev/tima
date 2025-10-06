@@ -1,5 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { useId } from "react";
+import { useSupabaseQuery } from "@/hooks/useSupabaseQuery";
+import { eventTypesService } from "@/api/services/eventTypesService";
 
 import {
   Select,
@@ -26,12 +28,36 @@ function Header() {
 
   const [searchCityValue, setSearchCityValue] = useState<string>("");
   const [selectedCity, setSelectedCity] = useState<City | null>(null);
+
   const [cityRadiusValue, setCityRadiusValue] = useState<number>(0);
   const [selectedCityRadius, setSelectedCityRadius] = useState<number>(0);
+
+  const [selectedEventType, setSelectedEventType] = useState<
+    string | undefined
+  >("1c2e168e-00d9-4895-a10d-9f18646896c2");
+
+  const [eventTypes, setEventTypes] = useState<
+    { id: string; title: string; description: string }[]
+  >([]);
+
+  const { loading, error, data, executeQuery, reset, isSuccess, isError } =
+    useSupabaseQuery();
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  const fetchEvents = async () => {
+    const result = await executeQuery(() => eventTypesService.getData());
+    if (result?.data) {
+      setEventTypes(result.data);
+    }
+  };
 
   useEffect(() => {
     const cityParam = searchParams.get("city") || "";
     const radiusParam = searchParams.get("radius") || "";
+    const eventTypeParam = searchParams.get("interest") || "";
 
     if (cityParam && cityParam !== selectedCity?.value) {
       const city = cities.find((c) => c.value === cityParam);
@@ -44,6 +70,10 @@ function Header() {
 
     if (radiusParam && radiusParam !== selectedCityRadius.toString()) {
       setCityRadiusValue(Number(radiusParam));
+    }
+
+    if (eventTypeParam && eventTypeParam !== selectedEventType) {
+      setSelectedEventType(eventTypeParam);
     }
   }, [searchParams]);
 
@@ -60,6 +90,13 @@ function Header() {
       setSearchParams(searchParams);
     }
   }, [selectedCityRadius]);
+
+  useEffect(() => {
+    if (selectedEventType) {
+      searchParams.set("interest", selectedEventType);
+      setSearchParams(searchParams);
+    }
+  }, [selectedEventType]);
 
   const cities = [
     { value: "kyiv", label: "Київ" },
@@ -132,15 +169,23 @@ function Header() {
             </div>
           </div>
           <div>
-            <Select>
+            <Select
+              value={selectedEventType}
+              onValueChange={(value) => {
+                setSelectedEventType(value);
+              }}
+            >
               <SelectTrigger id="interest">
                 <SelectValue placeholder="Chess" />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="5">Volleyball</SelectItem>
-                  <SelectItem value="10">Football</SelectItem>
-                  <SelectItem value="15">Bascketball</SelectItem>
+                  {isSuccess &&
+                    eventTypes.map((type) => (
+                      <SelectItem key={type.id} value={type.id.toString()}>
+                        {type.title}
+                      </SelectItem>
+                    ))}
                 </SelectGroup>
               </SelectContent>
             </Select>
