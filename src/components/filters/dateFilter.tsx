@@ -9,9 +9,13 @@ import {
 
 import { ChevronDownIcon } from "lucide-react";
 
-function DateFilter() {
+type Props = {
+  selectedValue: Date;
+  onSelectedValueChanged: (date: Date) => void;
+};
+
+function DateFilter({ selectedValue, onSelectedValueChanged }: Props) {
   const [open, setOpen] = React.useState(false);
-  const [date, setDate] = React.useState<Date | undefined>(undefined);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -21,17 +25,22 @@ function DateFilter() {
           id="date"
           className="w-48 justify-between font-normal"
         >
-          {date ? date.toLocaleDateString() : "Select date"}
+          {/* {date ? date.toLocaleDateString() : "Select date"} */}
+          {selectedValue.toLocaleDateString()}
           <ChevronDownIcon />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto overflow-hidden p-0" align="start">
         <Calendar
-          mode="single"
-          selected={date}
+          mode="single" 
+          selected={selectedValue}
           captionLayout="dropdown"
+          timeZone="UTC"
+          startMonth={new Date(new Date().getFullYear(), new Date().getMonth())}
+          disabled={{ before: new Date() }}
           onSelect={(date) => {
-            setDate(date);
+            // setDate(date);
+            onSelectedValueChanged(date!);
             setOpen(false);
           }}
         />

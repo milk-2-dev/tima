@@ -36,6 +36,8 @@ function Header() {
     string | undefined
   >("1c2e168e-00d9-4895-a10d-9f18646896c2");
 
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+
   const [eventTypes, setEventTypes] = useState<
     { id: string; title: string; description: string }[]
   >([]);
@@ -58,6 +60,7 @@ function Header() {
     const cityParam = searchParams.get("city") || "";
     const radiusParam = searchParams.get("radius") || "";
     const eventTypeParam = searchParams.get("interest") || "";
+    const eventDateParam = searchParams.get("date") || "";
 
     if (cityParam && cityParam !== selectedCity?.value) {
       const city = cities.find((c) => c.value === cityParam);
@@ -74,6 +77,13 @@ function Header() {
 
     if (eventTypeParam && eventTypeParam !== selectedEventType) {
       setSelectedEventType(eventTypeParam);
+    }
+
+    if (eventDateParam !== selectedDate.toISOString()) {
+      const date = new Date(eventDateParam);
+      if (!isNaN(date.getTime())) {
+        setSelectedDate(date);
+      }
     }
   }, [searchParams]);
 
@@ -97,6 +107,14 @@ function Header() {
       setSearchParams(searchParams);
     }
   }, [selectedEventType]);
+
+  useEffect(() => {
+    if (selectedDate) {
+      const utcString = selectedDate.toISOString();
+      searchParams.set("date", utcString);
+      setSearchParams(searchParams);
+    }
+  }, [selectedDate]);
 
   const cities = [
     { value: "kyiv", label: "Київ" },
@@ -192,7 +210,10 @@ function Header() {
             </Select>
           </div>
           <div>
-            <DateFilter />
+            <DateFilter
+              selectedValue={selectedDate}
+              onSelectedValueChanged={setSelectedDate}
+            />
           </div>
         </div>
       </div>
