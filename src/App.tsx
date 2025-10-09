@@ -1,32 +1,32 @@
 import { useState, useEffect } from "react";
-import { useSupabaseQuery } from "./hooks/useSupabaseQuery";
+import { useSearchParams } from "react-router";
+import { useSupabaseQuery } from "@/hooks/useSupabaseQuery";
 
 import "./App.css";
-import { eventService } from "./api/services/eventService";
-import Header from "./components/Header";
+import { eventService } from "@/api/services/eventService";
+import Header from "@/components/Header";
+import EventList from "@/components/EventsList";
 
 function App() {
-  const [filters, setFilters] = useState({});
-
-  const {
-    loading,
-    error,
-    data: events,
-    executeQuery,
-    reset,
-    isSuccess,
-    isError,
-  } = useSupabaseQuery();
+  const [searchParams] = useSearchParams();
+  const { loading, data, executeQuery, isSuccess } = useSupabaseQuery();
+  const [events, setEvents] = useState<any[]>([]);
 
   useEffect(() => {
     fetchEvents();
-  }, []);
+  }, [searchParams]);
 
   const fetchEvents = async () => {
-    await executeQuery(() => eventService.getEvents(filters));
+    const searchParamsObj = Object.fromEntries(searchParams.entries());
+    const response = await executeQuery(() =>
+      eventService.getEvents(searchParamsObj)
+    );
+    if (response && response.data) {
+      setEvents(response.data);
+    }
   };
 
-  return ( 
+  return (
     <>
       <Header />
       <div className="flex h-screen bg-gray-200 font-roboto">
@@ -36,16 +36,11 @@ function App() {
             className="-translate-x-full ease-in fixed inset-y-0 left-0 z-30 w-96
         overflow-y-auto transition duration-300 transform bg-white lg:translate-x-0 lg:static lg:inset-0"
           >
-            {loading ? (
-              "Loading..."
-            ) : (
-              <ul>
-                {isSuccess &&
-                  events.map((event) => {
-                    return <li key={event.id}>{event.title}</li>;
-                  })}
-              </ul>
-            )}
+            <EventList
+              loading={loading}
+              isSuccess={isSuccess}
+              events={events}
+            />
           </div>
         </div>
         <div className="flex-1 flex flex-col overflow-hidden">

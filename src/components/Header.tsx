@@ -24,7 +24,7 @@ export type City = {
 };
 
 function Header() {
-  const [searchParams, setSearchParams] = useSearchParams(); // city, radius, interest, date
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [searchCityValue, setSearchCityValue] = useState<string>("");
   const [selectedCity, setSelectedCity] = useState<City | null>(null);
@@ -46,10 +46,10 @@ function Header() {
     useSupabaseQuery();
 
   useEffect(() => {
-    fetchEvents();
+    fetchEventTypes();
   }, []);
 
-  const fetchEvents = async () => {
+  const fetchEventTypes = async () => {
     const result = await executeQuery(() => eventTypesService.getData());
     if (result?.data) {
       setEventTypes(result.data);
