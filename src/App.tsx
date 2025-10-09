@@ -36,15 +36,11 @@ function App() {
             className="-translate-x-full ease-in fixed inset-y-0 left-0 z-30 w-96
         overflow-y-auto transition duration-300 transform bg-white lg:translate-x-0 lg:static lg:inset-0"
           >
-            {loading ? (
-              "Loading..."
-            ) : (
-              <EventList
-                loading={loading}
-                isSuccess={isSuccess}
-                events={events}
-              />
-            )}
+            <EventList
+              loading={loading}
+              isSuccess={isSuccess}
+              events={events}
+            />
           </div>
         </div>
         <div className="flex-1 flex flex-col overflow-hidden">
