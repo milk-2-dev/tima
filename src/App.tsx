@@ -67,7 +67,7 @@ function App() {
             <div
               id="map-container"
               ref={mapContainerRef}
-              class="absolute top-0 left-0 w-full h-full"
+              className="absolute top-0 left-0 w-full h-full"
             />
           </main>
         </div>
