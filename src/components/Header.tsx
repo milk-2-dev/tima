@@ -1,6 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { useId } from "react";
 import { useSupabaseQuery } from "@/hooks/useSupabaseQuery";
+
 import { eventTypesService } from "@/api/services/eventTypesService";
 
 import {
@@ -12,22 +13,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 
 import { useSearchParams } from "react-router";
 import LocationFilter from "./filters/locationFilter";
 import DateFilter from "./filters/dateFilter";
 
-export type City = {
-  value: string;
-  label: string;
-};
 
 function Header() {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [searchCityValue, setSearchCityValue] = useState<string>("");
-  const [selectedCity, setSelectedCity] = useState<City | null>(null);
+  const [locationId, setLocationId] = useState<string | null>(null);
+  const [location, setLocation] = useState<string | null>(null);
 
   const [cityRadiusValue, setCityRadiusValue] = useState<number>(0);
   const [selectedCityRadius, setSelectedCityRadius] = useState<number>(0);
@@ -57,19 +54,11 @@ function Header() {
   };
 
   useEffect(() => {
-    const cityParam = searchParams.get("city") || "";
     const radiusParam = searchParams.get("radius") || "";
     const eventTypeParam = searchParams.get("interest") || "";
     const eventDateParam = searchParams.get("date") || "";
-
-    if (cityParam && cityParam !== selectedCity?.value) {
-      const city = cities.find((c) => c.value === cityParam);
-
-      if (city) {
-        setSelectedCity(city);
-        setSearchCityValue(city.label);
-      }
-    }
+    const eventMapboxId = searchParams.get("mapbox_id") || "";
+    const eventLocation = searchParams.get("location") || "";
 
     if (radiusParam && radiusParam !== selectedCityRadius.toString()) {
       setCityRadiusValue(Number(radiusParam));
@@ -85,14 +74,15 @@ function Header() {
         setSelectedDate(date);
       }
     }
-  }, [searchParams]);
 
-  useEffect(() => {
-    if (selectedCity) {
-      searchParams.set("city", selectedCity.value);
-      setSearchParams(searchParams);
+    if (eventMapboxId && eventMapboxId !== locationId) {
+      setLocationId(eventMapboxId);
     }
-  }, [selectedCity]);
+
+    if (eventLocation) {
+      setLocation(eventLocation);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (selectedCityRadius) {
@@ -116,28 +106,21 @@ function Header() {
     }
   }, [selectedDate]);
 
-  const cities = [
-    { value: "kyiv", label: "Київ" },
-    { value: "kharkiv", label: "Харків" },
-    { value: "odesa", label: "Одеса" },
-    { value: "dnipro", label: "Дніпро" },
-    { value: "vinnucia", label: "Вінниця" },
-    { value: "vinnucia2", label: "Вінниця2" },
-    { value: "vinnucia3", label: "Вінниця3" },
-  ];
-
-  const filteredCities = useMemo(() => {
-    if (searchCityValue.length === 0) {
-      return cities.slice(0, 10); // Показать первые 10 городов, если строка поиска пуста
-    }
-    return cities
-      .filter(({ label }) =>
-        label.toLowerCase().includes(searchCityValue.toLowerCase())
-      )
-      .slice(0, 10); // Ограничиваем количество подсказок
-  }, [searchCityValue]);
-
   const id = useId();
+
+  const handleLocationChange = (locationDetails) => {
+    setLocationId(locationDetails.properties.mapbox_id);
+
+    searchParams.set("mapbox_id", locationDetails.properties.mapbox_id);
+    searchParams.set(
+      "coordinates",
+      locationDetails.properties.coordinates.longitude +
+        "," +
+        locationDetails.properties.coordinates.latitude
+    );
+
+    setSearchParams(searchParams);
+  };
 
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
@@ -145,12 +128,8 @@ function Header() {
         <div className="flex w-full gap-4 sm:justify-between">
           <div className="flex w-3/12">
             <LocationFilter
-              selectedValue={selectedCity}
-              onSelectedValueChange={setSelectedCity}
-              searchValue={searchCityValue}
-              onSearchValueChange={setSearchCityValue}
-              items={filteredCities ?? []}
-              // isLoading={isLoading}
+              location={location}
+              onLocationChange={handleLocationChange}
             />
 
             <div className="relative -ms-px w-3/8">
@@ -160,7 +139,7 @@ function Header() {
                 placeholder="0"
                 type="text"
                 inputMode="decimal"
-                disabled={!selectedCity}
+                disabled={!locationId}
                 value={cityRadiusValue}
                 onChange={(e) => {
                   const value = e.target.value;

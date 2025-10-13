@@ -3,14 +3,22 @@ import { useSearchParams } from "react-router";
 import { useSupabaseQuery } from "@/hooks/useSupabaseQuery";
 
 import "./App.css";
+
 import { eventService } from "@/api/services/eventService";
+
 import Header from "@/components/Header";
 import EventList from "@/components/EventsList";
+import Map from "@/components/Map";
+
+import type { Coordinates } from "@/components/Map";
+
+const defaultCenter: Coordinates = [13.38886, 52.517037]; // Default to Berlin
 
 function App() {
   const [searchParams] = useSearchParams();
   const { loading, data, executeQuery, isSuccess } = useSupabaseQuery();
   const [events, setEvents] = useState<any[]>([]);
+  const [location, setLocation] = useState(defaultCenter);
 
   useEffect(() => {
     fetchEvents();
@@ -24,6 +32,10 @@ function App() {
     if (response && response.data) {
       setEvents(response.data);
     }
+  };
+
+  const updateUrlParams = (props) => {
+    console.log("updateUrlParams", props);
   };
 
   return (
@@ -44,8 +56,18 @@ function App() {
           </div>
         </div>
         <div className="flex-1 flex flex-col overflow-hidden">
-          <main className="flex flex-col flex-1 overflow-x-hidden overflow-y-auto bg-gray-200">
-            <p>Map</p>
+          <main className="flex flex-col flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 relative">
+            <Map
+              events={events}
+              center={location}
+              onMove={(newCenter, newZoom) =>
+                updateUrlParams({
+                  lat: newCenter.lat,
+                  lng: newCenter.lng,
+                  zoom: newZoom,
+                })
+              }
+            />
           </main>
         </div>
       </div>
