@@ -1,6 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { useId } from "react";
 import { useSupabaseQuery } from "@/hooks/useSupabaseQuery";
+
 import { eventTypesService } from "@/api/services/eventTypesService";
 
 import {
@@ -23,6 +24,7 @@ function Header() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [locationId, setLocationId] = useState<string | null>(null);
+  const [location, setLocation] = useState<string | null>(null);
 
   const [cityRadiusValue, setCityRadiusValue] = useState<number>(0);
   const [selectedCityRadius, setSelectedCityRadius] = useState<number>(0);
@@ -56,6 +58,7 @@ function Header() {
     const eventTypeParam = searchParams.get("interest") || "";
     const eventDateParam = searchParams.get("date") || "";
     const eventMapboxId = searchParams.get("mapbox_id") || "";
+    const eventLocation = searchParams.get("location") || "";
 
     if (radiusParam && radiusParam !== selectedCityRadius.toString()) {
       setCityRadiusValue(Number(radiusParam));
@@ -74,6 +77,10 @@ function Header() {
 
     if (eventMapboxId && eventMapboxId !== locationId) {
       setLocationId(eventMapboxId);
+    }
+
+    if (eventLocation) {
+      setLocation(eventLocation);
     }
   }, [searchParams]);
 
@@ -101,7 +108,7 @@ function Header() {
 
   const id = useId();
 
-  const handleLocationChange = (locationDetails: LocationDetails) => {
+  const handleLocationChange = (locationDetails) => {
     setLocationId(locationDetails.properties.mapbox_id);
 
     searchParams.set("mapbox_id", locationDetails.properties.mapbox_id);
@@ -121,7 +128,7 @@ function Header() {
         <div className="flex w-full gap-4 sm:justify-between">
           <div className="flex w-3/12">
             <LocationFilter
-              locationId={locationId}
+              location={location}
               onLocationChange={handleLocationChange}
             />
 

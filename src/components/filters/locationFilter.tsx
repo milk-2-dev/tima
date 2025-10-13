@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useUserGeolocation } from "@/hooks/useUserGeolocation";
+
 import { generateSessionToken } from "@/lib/utils";
 
 import {
@@ -51,11 +53,11 @@ type Suggestion = {
 };
 
 type Props = {
-  locationId: string | null;
+  location: string | null;
   onLocationChange: (location: LocationFeature) => void;
 };
 
-function LocationFilter({ locationId, onLocationChange }: Props) {
+function LocationFilter({ location, onLocationChange }: Props) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [sugestions, setSugestions] = useState<Suggestion[]>([]);
@@ -64,26 +66,34 @@ function LocationFilter({ locationId, onLocationChange }: Props) {
   );
   // const [feature, setFeature] = useState<any>(null);
   const [sessionToken, setSessionToken] = useState("");
+  // const { location, loading } = useUserGeolocation();
 
   useEffect(() => {
     setSessionToken(generateSessionToken());
   }, []);
 
   useEffect(() => {
-    if (locationId && locationId !== selectedSugestion?.mapbox_id) {
+    if (location) {
       (async () => {
-        await fetchSuggestedFeature(locationId);
+        await reverseGeocode(location.latitude, location.longitude);
       })();
     }
-  }, [locationId]);
+  }, [location]);
 
   const fetchSugestions = async (searchQuery: string) => {
+    let proximity = null;
+
+    if(location) {
+      proximity = `&proximity=${location.longitude},${location.latitude}`;
+    }
+
     try {
       const response = await fetch(
         `https://api.mapbox.com/search/searchbox/v1/suggest?` +
           `q=${encodeURIComponent(searchQuery)}` +
           `&types=country%2Cregion%2Cdistrict%2Cpostcode%2Clocality` +
           `&country=DE` +
+          `${proximity && proximity}` +
           `&session_token=${sessionToken}` +
           `&access_token=${import.meta.env.VITE_MAPBOX_ACCESS_TOKEN}`
       );
@@ -127,6 +137,31 @@ function LocationFilter({ locationId, onLocationChange }: Props) {
     }
   };
 
+  const reverseGeocode = async (lat, lng) => {
+    try {
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?` +
+        `&types=country%2Cregion%2Cdistrict%2Cpostcode%2Clocality` +
+        `&access_token=${import.meta.env.VITE_MAPBOX_ACCESS_TOKEN}`
+      );
+      
+      const data = await response.json();
+
+      console.log('Reverse geocode data:', data);
+      
+      if (data.features && data.features.length > 0) {
+        const cityFeature = data.features.find(feature => 
+          feature.place_type.includes('place')
+        );
+        return cityFeature ? cityFeature.text : data.features[0].text;
+      }
+      return '';
+    } catch (error) {
+      console.error('Помилка геокодінга:', error);
+      return '';
+    }
+  };
+
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (query && query !== selectedSugestion?.name_preferred) {
@@ -146,6 +181,7 @@ function LocationFilter({ locationId, onLocationChange }: Props) {
   const handleSelect = async (sugestedItem: Suggestion) => {
     setSelectedSugestion(sugestedItem);
     setQuery(sugestedItem.name_preferred);
+
     await fetchSuggestedFeature(sugestedItem.mapbox_id);
 
     setOpen(false);
@@ -180,9 +216,10 @@ function LocationFilter({ locationId, onLocationChange }: Props) {
                       onSelect={() => {
                         handleSelect(item);
                       }}
+                      className="flex flex-col align-start items-start gap-0 "
                     >
-                      <h3>{item.name_preferred}</h3>
-                      <p>{item.place_formatted}</p>
+                      <h3 className="bold">{item.name}</h3>
+                      <p className="text-gray-500">{item.place_formatted}</p>
                     </CommandItem>
                   );
                 })}

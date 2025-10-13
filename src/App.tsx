@@ -1,35 +1,24 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router";
 import { useSupabaseQuery } from "@/hooks/useSupabaseQuery";
-import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
 
 import "./App.css";
+
 import { eventService } from "@/api/services/eventService";
+
 import Header from "@/components/Header";
 import EventList from "@/components/EventsList";
+import Map from "@/components/Map";
+
+import type { Coordinates } from "@/components/Map";
+
+const defaultCenter: Coordinates = [13.38886, 52.517037]; // Default to Berlin
 
 function App() {
   const [searchParams] = useSearchParams();
   const { loading, data, executeQuery, isSuccess } = useSupabaseQuery();
   const [events, setEvents] = useState<any[]>([]);
-
-  const mapRef = useRef();
-  const mapContainerRef = useRef();
-
-  useEffect(() => {
-    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
-
-    mapRef.current = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      center: [-74.0242, 40.6941],
-      zoom: 10.12,
-    });
-
-    return () => {
-      mapRef.current.remove();
-    };
-  }, []);
+  const [location, setLocation] = useState(defaultCenter);
 
   useEffect(() => {
     fetchEvents();
@@ -43,6 +32,10 @@ function App() {
     if (response && response.data) {
       setEvents(response.data);
     }
+  };
+
+  const updateUrlParams = (props) => {
+    console.log("updateUrlParams", props);
   };
 
   return (
@@ -64,10 +57,16 @@ function App() {
         </div>
         <div className="flex-1 flex flex-col overflow-hidden">
           <main className="flex flex-col flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 relative">
-            <div
-              id="map-container"
-              ref={mapContainerRef}
-              className="absolute top-0 left-0 w-full h-full"
+            <Map
+              events={events}
+              center={location}
+              onMove={(newCenter, newZoom) =>
+                updateUrlParams({
+                  lat: newCenter.lat,
+                  lng: newCenter.lng,
+                  zoom: newZoom,
+                })
+              }
             />
           </main>
         </div>
