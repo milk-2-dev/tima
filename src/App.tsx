@@ -46,13 +46,11 @@ function App() {
       setIsAppLoading(true);
       setError(null);
 
-      let location;
-
       const latitude = searchParams.get("lat");
       const longitude = searchParams.get("lng");
 
       if (latitude && longitude) {
-        console.log("📍 Використовую локацію з URL:", location);
+        console.log("📍 Використовую локацію з URL:", {latitude, longitude});
         setFilters((prev) => ({
           ...prev,
           lat: latitude,
@@ -90,8 +88,10 @@ function App() {
 
   useQuerySync(filters, setFilters);
 
+  
+
   useEffect(() => {
-    console.log("from app.tsx filters changed", filters);
+    // console.log("from app.tsx filters changed", filters);
   }, [filters]);
   // useEffect(() => {
   //   fetchEvents();
@@ -107,9 +107,17 @@ function App() {
   //   }
   // };
 
+  const handleChangeFilters = (newFilters: typeof filters) => {
+    setFilters((prev) => ({ ...prev, ...newFilters }));
+  };
+
   return (
     <>
-      <Header loading={isAppLoading} filters={filters} />
+      <Header
+        loading={isAppLoading}
+        filters={filters}
+        onChangeFilters={handleChangeFilters}
+      />
       <div className="flex h-screen bg-gray-200 font-roboto">
         <div className="flex">
           <div className="hidden fixed inset-0 z-20 transition-opacity bg-black opacity-50 lg:hidden"></div>

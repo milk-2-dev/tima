@@ -1,5 +1,5 @@
 import { Input } from "@/components/ui/input";
-import { useId } from "react";
+import { useId, useMemo } from "react";
 import { useSupabaseQuery } from "@/hooks/useSupabaseQuery";
 
 import { eventTypesService } from "@/api/services/eventTypesService";
@@ -19,28 +19,40 @@ import { useSearchParams } from "react-router";
 import LocationFilter from "./filters/locationFilter";
 import DateFilter from "./filters/dateFilter";
 
+type Props = {
+  filters: any;
+  setFilters: (filters: any) => void;
+  loading: boolean;
+};
 
-function Header() {
-  const [searchParams, setSearchParams] = useSearchParams();
+function Header({ filters, setFilters, loading }: Props) {
+  // const [searchParams, setSearchParams] = useSearchParams();
 
-  const [locationId, setLocationId] = useState<string | null>(null);
-  const [location, setLocation] = useState<string | null>(null);
+  // const [locationId, setLocationId] = useState<string | null>(null);
+  // const [location, setLocation] = useState<string | null>(null);
 
-  const [cityRadiusValue, setCityRadiusValue] = useState<number>(0);
-  const [selectedCityRadius, setSelectedCityRadius] = useState<number>(0);
+  // const [cityRadiusValue, setCityRadiusValue] = useState<number>(0);
+  // const [selectedCityRadius, setSelectedCityRadius] = useState<number>(0);
 
-  const [selectedEventType, setSelectedEventType] = useState<
-    string | undefined
-  >("1c2e168e-00d9-4895-a10d-9f18646896c2");
+  // const [selectedEventType, setSelectedEventType] = useState<
+  //   string | undefined
+  // >("1c2e168e-00d9-4895-a10d-9f18646896c2");
 
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  // const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   const [eventTypes, setEventTypes] = useState<
     { id: string; title: string; description: string }[]
   >([]);
 
-  const { loading, error, data, executeQuery, reset, isSuccess, isError } =
-    useSupabaseQuery();
+  const {
+    loading: isLoadingTypes,
+    error,
+    data,
+    executeQuery,
+    reset,
+    isSuccess,
+    isError,
+  } = useSupabaseQuery();
 
   useEffect(() => {
     fetchEventTypes();
@@ -53,148 +65,157 @@ function Header() {
     }
   };
 
-  useEffect(() => {
-    const radiusParam = searchParams.get("radius") || "";
-    const eventTypeParam = searchParams.get("interest") || "";
-    const eventDateParam = searchParams.get("date") || "";
-    const eventMapboxId = searchParams.get("mapbox_id") || "";
-    const eventLocation = searchParams.get("location") || "";
+  const mapCenter = useMemo(() => {
+    const { lat, lng } = filters;
 
-    if (radiusParam && radiusParam !== selectedCityRadius.toString()) {
-      setCityRadiusValue(Number(radiusParam));
-    }
+    return {
+      lat,
+      lng,
+    };
+  }, [filters.lat, filters.lng]);
 
-    if (eventTypeParam && eventTypeParam !== selectedEventType) {
-      setSelectedEventType(eventTypeParam);
-    }
+  // useEffect(() => {
+  //   const radiusParam = searchParams.get("radius") || "";
+  //   const eventTypeParam = searchParams.get("interest") || "";
+  //   const eventDateParam = searchParams.get("date") || "";
+  //   const eventMapboxId = searchParams.get("mapbox_id") || "";
+  //   const eventLocation = searchParams.get("location") || "";
 
-    if (eventDateParam !== selectedDate.toISOString()) {
-      const date = new Date(eventDateParam);
-      if (!isNaN(date.getTime())) {
-        setSelectedDate(date);
-      }
-    }
+  //   if (radiusParam && radiusParam !== selectedCityRadius.toString()) {
+  //     setCityRadiusValue(Number(radiusParam));
+  //   }
 
-    if (eventMapboxId && eventMapboxId !== locationId) {
-      setLocationId(eventMapboxId);
-    }
+  //   if (eventTypeParam && eventTypeParam !== selectedEventType) {
+  //     setSelectedEventType(eventTypeParam);
+  //   }
 
-    if (eventLocation) {
-      setLocation(eventLocation);
-    }
-  }, [searchParams]);
+  //   if (eventDateParam !== selectedDate.toISOString()) {
+  //     const date = new Date(eventDateParam);
+  //     if (!isNaN(date.getTime())) {
+  //       setSelectedDate(date);
+  //     }
+  //   }
 
-  useEffect(() => {
-    if (selectedCityRadius) {
-      searchParams.set("radius", selectedCityRadius.toString());
-      setSearchParams(searchParams);
-    }
-  }, [selectedCityRadius]);
+  //   if (eventMapboxId && eventMapboxId !== locationId) {
+  //     setLocationId(eventMapboxId);
+  //   }
 
-  useEffect(() => {
-    if (selectedEventType) {
-      searchParams.set("interest", selectedEventType);
-      setSearchParams(searchParams);
-    }
-  }, [selectedEventType]);
+  //   if (eventLocation) {
+  //     setLocation(eventLocation);
+  //   }
+  // }, [searchParams]);
 
-  useEffect(() => {
-    if (selectedDate) {
-      const utcString = selectedDate.toISOString();
-      searchParams.set("date", utcString);
-      setSearchParams(searchParams);
-    }
-  }, [selectedDate]);
+  // useEffect(() => {
+  //   if (selectedCityRadius) {
+  //     searchParams.set("radius", selectedCityRadius.toString());
+  //     setSearchParams(searchParams);
+  //   }
+  // }, [selectedCityRadius]);
 
-  const id = useId();
+  // useEffect(() => {
+  //   if (selectedEventType) {
+  //     searchParams.set("interest", selectedEventType);
+  //     setSearchParams(searchParams);
+  //   }
+  // }, [selectedEventType]);
+
+  // useEffect(() => {
+  //   if (selectedDate) {
+  //     const utcString = selectedDate.toISOString();
+  //     searchParams.set("date", utcString);
+  //     setSearchParams(searchParams);
+  //   }
+  // }, [selectedDate]);
+
+  // const id = useId();
 
   const handleLocationChange = (locationDetails) => {
-    setLocationId(locationDetails.properties.mapbox_id);
-
-    searchParams.set("mapbox_id", locationDetails.properties.mapbox_id);
-    searchParams.set(
-      "coordinates",
-      locationDetails.properties.coordinates.longitude +
-        "," +
-        locationDetails.properties.coordinates.latitude
-    );
-
-    setSearchParams(searchParams);
+    // setLocationId(locationDetails.properties.mapbox_id);
+    // searchParams.set("mapbox_id", locationDetails.properties.mapbox_id);
+    // searchParams.set(
+    //   "coordinates",
+    //   locationDetails.properties.coordinates.longitude +
+    //     "," +
+    //     locationDetails.properties.coordinates.latitude
+    // );
+    // setSearchParams(searchParams);
   };
 
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
       <div className="flex flex-col items-start justify-between w-full gap-2 py-4 px-4 sm:flex-row sm:items-center sm:gap-0 md:h-16">
-        <div className="flex w-full gap-4 sm:justify-between">
-          <div className="flex w-3/12">
-            <LocationFilter
-              location={location}
-              onLocationChange={handleLocationChange}
-            />
+        {!loading && (
+          <div className="flex w-full gap-4 sm:justify-between">
+            <div className="flex w-3/12">
+              <LocationFilter
+                location={mapCenter}
+                onLocationChange={handleLocationChange}
+              />
 
-            <div className="relative -ms-px w-3/8">
-              <Input
-                id={id}
-                className="rounded-s-none shadow-none [direction:inherit] peer pe-8 text-right"
-                placeholder="0"
-                type="text"
-                inputMode="decimal"
-                disabled={!locationId}
-                value={cityRadiusValue}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (/^\d*$/.test(value)) {
-                    setCityRadiusValue(Number(value));
-                  }
-                }}
-                onBlur={() => {
-                  if (selectedCityRadius !== cityRadiusValue) {
-                    setSelectedCityRadius(cityRadiusValue);
-                  }
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
+              {/* <div className="relative -ms-px w-3/8">
+                <Input
+                  id={id}
+                  className="rounded-s-none shadow-none [direction:inherit] peer pe-8 text-right"
+                  placeholder="0"
+                  type="text"
+                  inputMode="decimal"
+                  disabled={!locationId}
+                  value={cityRadiusValue}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (/^\d*$/.test(value)) {
+                      setCityRadiusValue(Number(value));
+                    }
+                  }}
+                  onBlur={() => {
                     if (selectedCityRadius !== cityRadiusValue) {
                       setSelectedCityRadius(cityRadiusValue);
                     }
-                  }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      if (selectedCityRadius !== cityRadiusValue) {
+                        setSelectedCityRadius(cityRadiusValue);
+                      }
+                    }
+                  }}
+                  aria-label="Enter radius in kilometers"
+                />
+                <span className="text-muted-foreground pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-3 text-sm peer-disabled:opacity-50">
+                  km
+                </span>
+              </div> */}
+            </div>
+            <div>
+              {/* <Select
+                value={selectedEventType}
+                onValueChange={(value) => {
+                  setSelectedEventType(value);
                 }}
-                aria-label="Enter radius in kilometers"
-              />
-              <span className="text-muted-foreground pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-3 text-sm peer-disabled:opacity-50">
-                km
-              </span>
+              >
+                <SelectTrigger id="interest">
+                  <SelectValue placeholder="Chess" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {isSuccess &&
+                      eventTypes.map((type) => (
+                        <SelectItem key={type.id} value={type.id.toString()}>
+                          {type.title}
+                        </SelectItem>
+                      ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select> */}
+            </div>
+            <div>
+              {/* <DateFilter
+                selectedValue={selectedDate}
+                onSelectedValueChanged={setSelectedDate}
+              /> */}
             </div>
           </div>
-          <div>
-            <Select
-              value={selectedEventType}
-              onValueChange={(value) => {
-                setSelectedEventType(value);
-              }}
-            >
-              <SelectTrigger id="interest">
-                <SelectValue placeholder="Chess" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  {isSuccess &&
-                    eventTypes.map((type) => (
-                      <SelectItem key={type.id} value={type.id.toString()}>
-                        {type.title}
-                      </SelectItem>
-                    ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <DateFilter
-              selectedValue={selectedDate}
-              onSelectedValueChanged={setSelectedDate}
-            />
-          </div>
-        </div>
+        )}
       </div>
     </header>
   );

@@ -53,7 +53,7 @@ type Suggestion = {
 };
 
 type Props = {
-  location: string | null;
+  location: { lat: number; lng: number };
   onLocationChange: (location: LocationFeature) => void;
 };
 
@@ -75,7 +75,7 @@ function LocationFilter({ location, onLocationChange }: Props) {
   useEffect(() => {
     if (location) {
       (async () => {
-        await reverseGeocode(location.latitude, location.longitude);
+        await reverseGeocode(location.lat, location.lng);
       })();
     }
   }, [location]);
@@ -83,7 +83,7 @@ function LocationFilter({ location, onLocationChange }: Props) {
   const fetchSugestions = async (searchQuery: string) => {
     let proximity = null;
 
-    if(location) {
+    if (location) {
       proximity = `&proximity=${location.longitude},${location.latitude}`;
     }
 
@@ -141,24 +141,29 @@ function LocationFilter({ location, onLocationChange }: Props) {
     try {
       const response = await fetch(
         `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?` +
-        `&types=country%2Cregion%2Cdistrict%2Cpostcode%2Clocality` +
-        `&access_token=${import.meta.env.VITE_MAPBOX_ACCESS_TOKEN}`
+          `&types=country%2Cregion%2Cdistrict%2Cpostcode%2Clocality` +
+          `&access_token=${import.meta.env.VITE_MAPBOX_ACCESS_TOKEN}`
       );
-      
+
       const data = await response.json();
 
-      console.log('Reverse geocode data:', data);
-      
       if (data.features && data.features.length > 0) {
-        const cityFeature = data.features.find(feature => 
-          feature.place_type.includes('place')
+        const localityFeature = data.features.find((feature) =>
+          feature.place_type.includes("locality")
         );
-        return cityFeature ? cityFeature.text : data.features[0].text;
+
+        if (localityFeature) {
+          setSelectedSugestion({
+            name_preferred: localityFeature.text,
+          });
+          setQuery(localityFeature.text);
+        }
+        return localityFeature ? localityFeature.text : data.features[0].text;
       }
-      return '';
+      // return "";
     } catch (error) {
-      console.error('Помилка геокодінга:', error);
-      return '';
+      console.error("Помилка геокодінга:", error);
+      return "";
     }
   };
 

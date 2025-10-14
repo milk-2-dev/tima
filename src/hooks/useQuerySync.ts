@@ -22,7 +22,10 @@ export function useQuerySync<T extends Record<string, any>>(
     const hasParams = Object.keys(paramsObj).length > 0;
     const initial = hasParams ? { ...defaults, ...paramsObj } : { ...defaults };
 
-    setFilters(prev => ({ ...prev, ...initial }));
+    setFilters((prev) => {
+      console.log("Merging initial filters with current state:", prev, initial);
+      return { ...prev, ...initial };
+    });
 
     // Якщо параметрів не було в URL — оновлюємо URL дефолтами
     if (!hasParams) {
@@ -39,8 +42,9 @@ export function useQuerySync<T extends Record<string, any>>(
   // 2️⃣ При зміні фільтрів — оновлюємо URL (якщо є зміни)
   useEffect(() => {
     if (!initialized.current) return;
-
+    console.log("Filters changed, syncing to URL:", filters);
     const currentParams = Object.fromEntries(searchParams.entries());
+    console.log("Filters from URL:", currentParams);
     const newParams: Record<string, string> = {};
 
     Object.entries(filters).forEach(([k, v]) => {
