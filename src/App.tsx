@@ -1,6 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router";
 import { useSupabaseQuery } from "@/hooks/useSupabaseQuery";
+import { useUserGeolocation } from "@/hooks/useUserGeolocation";
+import { useQuerySync } from "@/hooks/useQuerySync";
 
 import "./App.css";
 
@@ -11,36 +13,103 @@ import EventList from "@/components/EventsList";
 import Map from "@/components/Map";
 
 import type { Coordinates } from "@/components/Map";
+import { set } from "date-fns";
 
-const defaultCenter: Coordinates = [13.38886, 52.517037]; // Default to Berlin
+const defaultCenter: Coordinates = { lat: 52.517037, lng: 13.38886 }; // Default to Berlin
 
 function App() {
-  const [searchParams] = useSearchParams();
-  const { loading, data, executeQuery, isSuccess } = useSupabaseQuery();
+  const {
+    loading: isLoadingEvents,
+    data,
+    executeQuery,
+    isSuccess,
+  } = useSupabaseQuery();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { getCurrentPosition } = useUserGeolocation();
+
   const [events, setEvents] = useState<any[]>([]);
-  const [location, setLocation] = useState(defaultCenter);
+  // const [location, setLocation] = useState(defaultCenter);
+  const [isAppLoading, setIsAppLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetchEvents();
-  }, [searchParams]);
+  const today = new Date().toISOString().slice(0, 10);
 
-  const fetchEvents = async () => {
-    const searchParamsObj = Object.fromEntries(searchParams.entries());
-    const response = await executeQuery(() =>
-      eventService.getEvents(searchParamsObj)
-    );
-    if (response && response.data) {
-      setEvents(response.data);
+  const [filters, setFilters] = useState({
+    date: today,
+    eventType: "1c2e168e-00d9-4895-a10d-9f18646896c2",
+    lat: null,
+    lng: null,
+  });
+
+  const initializeApp = async () => {
+    try {
+      setIsAppLoading(true);
+      setError(null);
+
+      let location;
+
+      const latitude = searchParams.get("lat");
+      const longitude = searchParams.get("lng");
+
+      if (latitude && longitude) {
+        console.log("📍 Використовую локацію з URL:", location);
+        setFilters((prev) => ({
+          ...prev,
+          lat: latitude,
+          lng: longitude,
+        }));
+      } else {
+        console.log("📍 Отримую локацію клієнта...");
+        const { lat, lng } = await getCurrentPosition();
+
+        setFilters((prev) => ({
+          ...prev,
+          lat,
+          lng,
+        }));
+      }
+    } catch (err) {
+      console.error("❌ Помилка ініціалізації:", err);
+      setError(err.message);
+
+      const { lat, lng } = defaultCenter;
+
+      setFilters((prev) => ({
+        ...prev,
+        lat,
+        lng,
+      }));
+    } finally {
+      setIsAppLoading(false);
     }
   };
 
-  const updateUrlParams = (props) => {
-    console.log("updateUrlParams", props);
-  };
+  useEffect(() => {
+    initializeApp();
+  }, []);
+
+  useQuerySync(filters, setFilters);
+
+  useEffect(() => {
+    console.log("from app.tsx filters changed", filters);
+  }, [filters]);
+  // useEffect(() => {
+  //   fetchEvents();
+  // }, [searchParams]);
+
+  // const fetchEvents = async () => {
+  //   const searchParamsObj = Object.fromEntries(searchParams.entries());
+  //   const response = await executeQuery(() =>
+  //     eventService.getEvents(searchParamsObj)
+  //   );
+  //   if (response && response.data) {
+  //     setEvents(response.data);
+  //   }
+  // };
 
   return (
     <>
-      <Header />
+      <Header loading={isAppLoading} filters={filters} />
       <div className="flex h-screen bg-gray-200 font-roboto">
         <div className="flex">
           <div className="hidden fixed inset-0 z-20 transition-opacity bg-black opacity-50 lg:hidden"></div>
@@ -48,16 +117,19 @@ function App() {
             className="-translate-x-full ease-in fixed inset-y-0 left-0 z-30 w-96
         overflow-y-auto transition duration-300 transform bg-white lg:translate-x-0 lg:static lg:inset-0"
           >
-            <EventList
-              loading={loading}
-              isSuccess={isSuccess}
-              events={events}
-            />
+            {!isAppLoading && (
+              <EventList
+                loading={isLoadingEvents}
+                isSuccess={isSuccess}
+                events={events}
+              />
+            )}
           </div>
         </div>
         <div className="flex-1 flex flex-col overflow-hidden">
           <main className="flex flex-col flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 relative">
-            <Map
+            {!isAppLoading && <div>test</div>}
+            {/* <Map
               events={events}
               center={location}
               onMove={(newCenter, newZoom) =>
@@ -67,7 +139,7 @@ function App() {
                   zoom: newZoom,
                 })
               }
-            />
+            /> */}
           </main>
         </div>
       </div>

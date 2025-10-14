@@ -3,7 +3,7 @@ import mapboxgl from "mapbox-gl";
 import type { Map, Marker } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
-export type Coordinates = [longitude: number, latitude: number];
+export type Coordinates = { lng: number; lat: number };
 
 type Props = {
   events: any[]; // Array of event objects with at least { id, latitude, longitude }
