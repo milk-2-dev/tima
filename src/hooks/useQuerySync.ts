@@ -1,9 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useSearchParams } from "react-router";
 
-/**
- * Двостороння синхронізація URL ↔ state з пріоритетом URL і дефолтами.
- */
 export function useQuerySync<T extends Record<string, any>>(
   filters: T,
   setFilters: (f: T) => void,
@@ -12,7 +9,6 @@ export function useQuerySync<T extends Record<string, any>>(
   const [searchParams, setSearchParams] = useSearchParams();
   const initialized = useRef(false);
 
-  // 1️⃣ При старті: читаємо URL → якщо є параметри, використовуємо їх, якщо ні — дефолти
   useEffect(() => {
     if (initialized.current) return;
 
@@ -23,11 +19,9 @@ export function useQuerySync<T extends Record<string, any>>(
     const initial = hasParams ? { ...defaults, ...paramsObj } : { ...defaults };
 
     setFilters((prev) => {
-      console.log("Merging initial filters with current state:", prev, initial);
       return { ...prev, ...initial };
     });
 
-    // Якщо параметрів не було в URL — оновлюємо URL дефолтами
     if (!hasParams) {
       const params = new URLSearchParams();
       Object.entries(defaults).forEach(([k, v]) => {
@@ -37,14 +31,15 @@ export function useQuerySync<T extends Record<string, any>>(
     }
 
     initialized.current = true;
+
+    return () => {
+      initialized.current = false;
+    };
   }, []);
 
-  // 2️⃣ При зміні фільтрів — оновлюємо URL (якщо є зміни)
   useEffect(() => {
-    if (!initialized.current) return;
-    console.log("Filters changed, syncing to URL:", filters);
+    if (!initialized.current || Object.keys(filters).length === 0) return;
     const currentParams = Object.fromEntries(searchParams.entries());
-    console.log("Filters from URL:", currentParams);
     const newParams: Record<string, string> = {};
 
     Object.entries(filters).forEach(([k, v]) => {
