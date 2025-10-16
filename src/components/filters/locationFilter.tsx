@@ -109,13 +109,11 @@ function LocationFilter({ placeType, location, onLocationChange }: Props) {
       }
 
       const data = await response.json();
-      // setFeature(data.features[0]);
-      onLocationChange(data.features[0]);
 
-      if (!query) {
-        setSelectedSugestion({ ...data.features[0].properties });
-        setQuery(data.features[0].properties.name_preferred);
-      }
+      setSelectedSugestion({ ...data.features[0].properties });
+      setQuery(data.features[0].properties.name_preferred);
+
+      onLocationChange(data.features[0]);
     } catch (error) {
       console.error("Search error:", error);
       setSugestions([]);
