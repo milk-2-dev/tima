@@ -1,9 +1,11 @@
-import { Input } from "@/components/ui/input";
+import { useState, useEffect } from "react";
 import { useId, useMemo } from "react";
+
 import { useSupabaseQuery } from "@/hooks/useSupabaseQuery";
 
 import { eventTypesService } from "@/api/services/eventTypesService";
 
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -13,9 +15,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { useState, useEffect } from "react";
-
-import { useSearchParams } from "react-router";
 import LocationFilter from "./filters/locationFilter";
 import DateFilter from "./filters/dateFilter";
 
@@ -28,40 +27,20 @@ type Props = {
 };
 
 function Header({ filters, onChangeFilters, loading }: Props) {
-  // const [searchParams, setSearchParams] = useSearchParams();
-
-  // const [locationId, setLocationId] = useState<string | null>(null);
-  // const [location, setLocation] = useState<string | null>(null);
-
   const radiusInput = useId();
   const [radiusValue, setRadiusValue] = useState<number>(0);
 
   const eventTypeSelect = useId();
+  const [eventTypes, setEventTypes] = useState<EventType[]>([]);
   const [eventTypeValue, setEventTypeValue] = useState<string | undefined>();
 
-  // const [selectedCityRadius, setSelectedCityRadius] = useState<number>(0);
-
-  // const [selectedEventType, setSelectedEventType] = useState<
-  //   string | undefined
-  // >("1c2e168e-00d9-4895-a10d-9f18646896c2");
-
-  // const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-
-  const [eventTypes, setEventTypes] = useState<EventType[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   const {
     loading: isLoadingTypes,
-    error,
-    data,
     executeQuery,
-    reset,
     isSuccess,
-    isError,
   } = useSupabaseQuery();
-
-  useEffect(() => {
-    fetchEventTypes();
-  }, []);
 
   const fetchEventTypes = async () => {
     const result = await executeQuery(() => eventTypesService.getData());
@@ -69,6 +48,10 @@ function Header({ filters, onChangeFilters, loading }: Props) {
       setEventTypes(result.data);
     }
   };
+
+  useEffect(() => {
+    fetchEventTypes();
+  }, []);
 
   const mapCenter = useMemo(() => {
     const { lat, lng } = filters;
@@ -87,58 +70,9 @@ function Header({ filters, onChangeFilters, loading }: Props) {
     setEventTypeValue(filters.eventTypeId);
   }, [filters.eventTypeId]);
 
-  // useEffect(() => {
-  //   const radiusParam = searchParams.get("radius") || "";
-  //   const eventTypeParam = searchParams.get("interest") || "";
-  //   const eventDateParam = searchParams.get("date") || "";
-  //   const eventMapboxId = searchParams.get("mapbox_id") || "";
-  //   const eventLocation = searchParams.get("location") || "";
-
-  //   if (radiusParam && radiusParam !== selectedCityRadius.toString()) {
-  //     setRadiusValue(Number(radiusParam));
-  //   }
-
-  //   if (eventTypeParam && eventTypeParam !== selectedEventType) {
-  //     setSelectedEventType(eventTypeParam);
-  //   }
-
-  //   if (eventDateParam !== selectedDate.toISOString()) {
-  //     const date = new Date(eventDateParam);
-  //     if (!isNaN(date.getTime())) {
-  //       setSelectedDate(date);
-  //     }
-  //   }
-
-  //   if (eventMapboxId && eventMapboxId !== locationId) {
-  //     setLocationId(eventMapboxId);
-  //   }
-
-  //   if (eventLocation) {
-  //     setLocation(eventLocation);
-  //   }
-  // }, [searchParams]);
-
-  // useEffect(() => {
-  //   if (selectedCityRadius) {
-  //     searchParams.set("radius", selectedCityRadius.toString());
-  //     setSearchParams(searchParams);
-  //   }
-  // }, [selectedCityRadius]);
-
-  // useEffect(() => {
-  //   if (selectedEventType) {
-  //     searchParams.set("interest", selectedEventType);
-  //     setSearchParams(searchParams);
-  //   }
-  // }, [selectedEventType]);
-
-  // useEffect(() => {
-  //   if (selectedDate) {
-  //     const utcString = selectedDate.toISOString();
-  //     searchParams.set("date", utcString);
-  //     setSearchParams(searchParams);
-  //   }
-  // }, [selectedDate]);
+  useEffect(() => {
+    setSelectedDate(new Date(filters.date));
+  }, [filters.date]);
 
   const handleLocationChange = (locationDetails: MapboxFeature) => {
     const { longitude, latitude } = locationDetails.properties.coordinates;
@@ -158,6 +92,20 @@ function Header({ filters, onChangeFilters, loading }: Props) {
       const newFilters = {
         ...filters,
         radius,
+      };
+
+      onChangeFilters(newFilters);
+    }
+  };
+
+  const handleDateChange = (date: Date) => {
+    setSelectedDate(date);
+    const isoDate = date.toISOString().split("T")[0];
+
+    if (isoDate !== filters.date) {
+      const newFilters = {
+        ...filters,
+        date: isoDate,
       };
 
       onChangeFilters(newFilters);
@@ -232,10 +180,10 @@ function Header({ filters, onChangeFilters, loading }: Props) {
               )}
             </div>
             <div>
-              {/* <DateFilter
+              <DateFilter
                 selectedValue={selectedDate}
-                onSelectedValueChanged={setSelectedDate}
-              /> */}
+                onSelectedValueChanged={handleDateChange.bind(null)}
+              />
             </div>
           </div>
         )}
