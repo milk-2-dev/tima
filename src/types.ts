@@ -11,9 +11,9 @@ export interface MapboxFeature {
   type: "Feature";
   place_type: string[];
   relevance: number;
-  text: string;              // коротка назва, наприклад "Berlin"
-  place_name: string;        // повна адреса, наприклад "Berlin, Germany"
-  center: [number, number];  // [lng, lat]
+  text: string; // коротка назва, наприклад "Berlin"
+  place_name: string; // повна адреса, наприклад "Berlin, Germany"
+  center: [number, number]; // [lng, lat]
   geometry: {
     type: string;
     coordinates: [number, number];
@@ -30,9 +30,10 @@ export interface MapboxFeature {
 export interface Filters {
   lng: Longitude;
   lat: Latitude;
+  placeType: PlaceType;
+  radius: number; // in kilometers
   eventTypeId: EventTypeId;
   date: Date;
-  placeType: PlaceType;
 }
 
 export interface EventItem {

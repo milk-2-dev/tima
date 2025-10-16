@@ -41,10 +41,10 @@ function App() {
       setIsAppLoading(true);
       setError(null);
 
-      const latitude = Number(searchParams.get("lat"));
-      const longitude = Number(searchParams.get("lng"));
+      const latitude = searchParams.get("lat");
+      const longitude = searchParams.get("lng");
 
-      if (Number.isNaN(latitude) && Number.isNaN(longitude)) {
+      if (!latitude && !longitude) {
         console.log("📍 Отримую локацію клієнта...");
         const { lat, lng } = await getCurrentPosition();
 

@@ -33,7 +33,9 @@ function Header({ filters, onChangeFilters, loading }: Props) {
   // const [locationId, setLocationId] = useState<string | null>(null);
   // const [location, setLocation] = useState<string | null>(null);
 
-  // const [cityRadiusValue, setCityRadiusValue] = useState<number>(0);
+  const radiusInput = useId();
+  const [radiusValue, setRadiusValue] = useState<number>(0);
+
   // const [selectedCityRadius, setSelectedCityRadius] = useState<number>(0);
 
   // const [selectedEventType, setSelectedEventType] = useState<
@@ -76,6 +78,10 @@ function Header({ filters, onChangeFilters, loading }: Props) {
     };
   }, [filters.lat, filters.lng]);
 
+  useEffect(() => {
+    setRadiusValue(Number(filters.radius) || 0);
+  }, [filters.radius]);
+
   // useEffect(() => {
   //   const radiusParam = searchParams.get("radius") || "";
   //   const eventTypeParam = searchParams.get("interest") || "";
@@ -84,7 +90,7 @@ function Header({ filters, onChangeFilters, loading }: Props) {
   //   const eventLocation = searchParams.get("location") || "";
 
   //   if (radiusParam && radiusParam !== selectedCityRadius.toString()) {
-  //     setCityRadiusValue(Number(radiusParam));
+  //     setRadiusValue(Number(radiusParam));
   //   }
 
   //   if (eventTypeParam && eventTypeParam !== selectedEventType) {
@@ -129,8 +135,6 @@ function Header({ filters, onChangeFilters, loading }: Props) {
   //   }
   // }, [selectedDate]);
 
-  // const id = useId();
-
   const handleLocationChange = (locationDetails: MapboxFeature) => {
     const { longitude, latitude } = locationDetails.properties.coordinates;
 
@@ -142,6 +146,17 @@ function Header({ filters, onChangeFilters, loading }: Props) {
     };
 
     onChangeFilters(newFilters);
+  };
+
+  const handleRadiusChange = (radius: number) => {
+    if (radius !== Number(filters.radius)) {
+      const newFilters = {
+        ...filters,
+        radius,
+      };
+
+      onChangeFilters(newFilters);
+    }
   };
 
   return (
@@ -156,31 +171,25 @@ function Header({ filters, onChangeFilters, loading }: Props) {
                 onLocationChange={handleLocationChange}
               />
 
-              {/* <div className="relative -ms-px w-3/8">
+              <div className="relative -ms-px w-3/8">
                 <Input
-                  id={id}
+                  id={radiusInput}
                   className="rounded-s-none shadow-none [direction:inherit] peer pe-8 text-right"
                   placeholder="0"
                   type="text"
                   inputMode="decimal"
-                  disabled={!locationId}
-                  value={cityRadiusValue}
+                  disabled={!mapCenter}
+                  value={radiusValue}
                   onChange={(e) => {
                     const value = e.target.value;
                     if (/^\d*$/.test(value)) {
-                      setCityRadiusValue(Number(value));
+                      setRadiusValue(Number(value));
                     }
                   }}
-                  onBlur={() => {
-                    if (selectedCityRadius !== cityRadiusValue) {
-                      setSelectedCityRadius(cityRadiusValue);
-                    }
-                  }}
+                  onBlur={handleRadiusChange.bind(null, radiusValue)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
-                      if (selectedCityRadius !== cityRadiusValue) {
-                        setSelectedCityRadius(cityRadiusValue);
-                      }
+                      e.currentTarget.blur();
                     }
                   }}
                   aria-label="Enter radius in kilometers"
@@ -188,7 +197,7 @@ function Header({ filters, onChangeFilters, loading }: Props) {
                 <span className="text-muted-foreground pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-3 text-sm peer-disabled:opacity-50">
                   km
                 </span>
-              </div> */}
+              </div>
             </div>
             <div>
               {/* <Select
