@@ -19,13 +19,15 @@ import { useSearchParams } from "react-router";
 import LocationFilter from "./filters/locationFilter";
 import DateFilter from "./filters/dateFilter";
 
+import type { Filters, MapboxFeature } from "@/types";
+
 type Props = {
-  filters: any;
-  setFilters: (filters: any) => void;
+  filters: Filters;
   loading: boolean;
+  onChangeFilters: (filters: Filters) => void;
 };
 
-function Header({ filters, setFilters, loading }: Props) {
+function Header({ filters, onChangeFilters, loading }: Props) {
   // const [searchParams, setSearchParams] = useSearchParams();
 
   // const [locationId, setLocationId] = useState<string | null>(null);
@@ -129,16 +131,17 @@ function Header({ filters, setFilters, loading }: Props) {
 
   // const id = useId();
 
-  const handleLocationChange = (locationDetails) => {
-    // setLocationId(locationDetails.properties.mapbox_id);
-    // searchParams.set("mapbox_id", locationDetails.properties.mapbox_id);
-    // searchParams.set(
-    //   "coordinates",
-    //   locationDetails.properties.coordinates.longitude +
-    //     "," +
-    //     locationDetails.properties.coordinates.latitude
-    // );
-    // setSearchParams(searchParams);
+  const handleLocationChange = (locationDetails: MapboxFeature) => {
+    const { longitude, latitude } = locationDetails.properties.coordinates;
+
+    const newFilters = {
+      ...filters,
+      placeType: locationDetails.properties.feature_type,
+      lat: latitude,
+      lng: longitude,
+    };
+
+    onChangeFilters(newFilters);
   };
 
   return (
@@ -148,6 +151,7 @@ function Header({ filters, setFilters, loading }: Props) {
           <div className="flex w-full gap-4 sm:justify-between">
             <div className="flex w-3/12">
               <LocationFilter
+                placeType={filters.placeType}
                 location={mapCenter}
                 onLocationChange={handleLocationChange}
               />

@@ -3,12 +3,12 @@ import mapboxgl from "mapbox-gl";
 import type { Map, Marker } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
-export type Coordinates = { lng: number; lat: number };
+export type Coordinates = { lng: string; lat: string };
 
 type Props = {
   events: any[]; // Array of event objects with at least { id, latitude, longitude }
   center: Coordinates;
-  onMove: (newCenter: { lat: number; lng: number }, newZoom: number) => void;
+  onMove: (newCenter: { lat: string; lng: string }, newZoom: number) => void;
 };
 
 const EventsMap = ({ events, center, onMove }: Props) => {

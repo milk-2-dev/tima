@@ -12,7 +12,7 @@ export function useQuerySync<T extends Record<string, any>>(
   useEffect(() => {
     if (initialized.current) return;
 
-    const paramsObj: any = {};
+    const paramsObj: Record<string, any> = {};
     searchParams.forEach((value, key) => (paramsObj[key] = value));
 
     const hasParams = Object.keys(paramsObj).length > 0;

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useUserGeolocation } from "@/hooks/useUserGeolocation";
+import type { MapboxFeature } from "@/types";
 
 import { generateSessionToken } from "@/lib/utils";
 
@@ -16,23 +16,6 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-
-export type LocationFeature = {
-  type: string;
-  properties: {
-    mapbox_id: string;
-    coordinates: {
-      longitude: number;
-      latitude: number;
-    };
-    name_preferred: string;
-    place_formatted: string;
-  };
-  geometry: {
-    type: string;
-    coordinates: [number, number];
-  };
-};
 
 type Suggestion = {
   name: string;
@@ -52,12 +35,15 @@ type Suggestion = {
   maki: string;
 };
 
+import type { PlaceType, Coordinates } from "@/types";
+
 type Props = {
-  location: { lat: number; lng: number };
-  onLocationChange: (location: LocationFeature) => void;
+  placeType: PlaceType;
+  location: Coordinates;
+  onLocationChange: (location: MapboxFeature) => void;
 };
 
-function LocationFilter({ location, onLocationChange }: Props) {
+function LocationFilter({ placeType, location, onLocationChange }: Props) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [sugestions, setSugestions] = useState<Suggestion[]>([]);
@@ -66,7 +52,6 @@ function LocationFilter({ location, onLocationChange }: Props) {
   );
   // const [feature, setFeature] = useState<any>(null);
   const [sessionToken, setSessionToken] = useState("");
-  // const { location, loading } = useUserGeolocation();
 
   useEffect(() => {
     setSessionToken(generateSessionToken());
@@ -75,7 +60,7 @@ function LocationFilter({ location, onLocationChange }: Props) {
   useEffect(() => {
     if (location) {
       (async () => {
-        await reverseGeocode(location.lat, location.lng);
+        await reverseGeocode(location);
       })();
     }
   }, [location]);
@@ -84,7 +69,7 @@ function LocationFilter({ location, onLocationChange }: Props) {
     let proximity = null;
 
     if (location) {
-      proximity = `&proximity=${location.longitude},${location.latitude}`;
+      proximity = `&proximity=${location.lng},${location.lat}`;
     }
 
     try {
@@ -137,7 +122,10 @@ function LocationFilter({ location, onLocationChange }: Props) {
     }
   };
 
-  const reverseGeocode = async (lat, lng) => {
+  const reverseGeocode: (props: Coordinates) => Promise<string> = async ({
+    lat,
+    lng,
+  }) => {
     try {
       const response = await fetch(
         `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?` +
@@ -148,19 +136,25 @@ function LocationFilter({ location, onLocationChange }: Props) {
       const data = await response.json();
 
       if (data.features && data.features.length > 0) {
-        const localityFeature = data.features.find((feature) =>
-          feature.place_type.includes("locality")
+        let featureData = data.features.find((feature: MapboxFeature) =>
+          feature.place_type.includes(placeType)
         );
 
-        if (localityFeature) {
-          setSelectedSugestion({
-            name_preferred: localityFeature.text,
-          });
-          setQuery(localityFeature.text);
+        if (!featureData) {
+          featureData = data.features.find((feature: MapboxFeature) =>
+            feature.place_type.includes("locality")
+          );
         }
-        return localityFeature ? localityFeature.text : data.features[0].text;
+
+        const text = featureData.text || data.features[0].text;
+
+        const newObj = { ...selectedSugestion, name_preferred: text };
+
+        setSelectedSugestion(newObj as Suggestion);
+        setQuery(text);
+
+        return text;
       }
-      // return "";
     } catch (error) {
       console.error("Помилка геокодінга:", error);
       return "";

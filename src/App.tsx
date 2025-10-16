@@ -12,10 +12,10 @@ import Header from "@/components/Header";
 import EventList from "@/components/EventsList";
 import Map from "@/components/Map";
 
-import type { Coordinates } from "@/components/Map";
-import { set } from "date-fns";
+import type { Filters, Coordinates } from "@/types";
 
 const defaultCenter: Coordinates = { lat: 52.517037, lng: 13.38886 }; // Default to Berlin
+const defaultPlaceType = "locality";
 
 function App() {
   const {
@@ -34,29 +34,17 @@ function App() {
 
   const today = new Date().toISOString().slice(0, 10);
 
-  const [filters, setFilters] = useState({
-    date: today,
-    eventType: "1c2e168e-00d9-4895-a10d-9f18646896c2",
-    lat: null,
-    lng: null,
-  });
+  const [filters, setFilters] = useState({} as Filters);
 
   const initializeApp = async () => {
     try {
       setIsAppLoading(true);
       setError(null);
 
-      const latitude = searchParams.get("lat");
-      const longitude = searchParams.get("lng");
+      const latitude = Number(searchParams.get("lat"));
+      const longitude = Number(searchParams.get("lng"));
 
-      if (latitude && longitude) {
-        console.log("📍 Використовую локацію з URL:", {latitude, longitude});
-        setFilters((prev) => ({
-          ...prev,
-          lat: latitude,
-          lng: longitude,
-        }));
-      } else {
+      if (Number.isNaN(latitude) && Number.isNaN(longitude)) {
         console.log("📍 Отримую локацію клієнта...");
         const { lat, lng } = await getCurrentPosition();
 
@@ -65,17 +53,21 @@ function App() {
           lat,
           lng,
         }));
+      } else {
+        console.log("📍 Використовую локацію із урл...");
+        setFilters((prev) => ({
+          ...prev,
+          lat: latitude,
+          lng: longitude,
+        }));
       }
     } catch (err) {
       console.error("❌ Помилка ініціалізації:", err);
       setError(err.message);
-
-      const { lat, lng } = defaultCenter;
-
       setFilters((prev) => ({
         ...prev,
-        lat,
-        lng,
+        lat: defaultCenter.lat,
+        lng: defaultCenter.lng,
       }));
     } finally {
       setIsAppLoading(false);
@@ -86,9 +78,13 @@ function App() {
     initializeApp();
   }, []);
 
-  useQuerySync(filters, setFilters);
-
-  
+  useQuerySync(filters, setFilters, {
+    date: today,
+    eventTypeId: "1c2e168e-00d9-4895-a10d-9f18646896c2",
+    lat: defaultCenter.lat,
+    lng: defaultCenter.lng,
+    placeType: defaultPlaceType,
+  });
 
   useEffect(() => {
     // console.log("from app.tsx filters changed", filters);
@@ -125,13 +121,13 @@ function App() {
             className="-translate-x-full ease-in fixed inset-y-0 left-0 z-30 w-96
         overflow-y-auto transition duration-300 transform bg-white lg:translate-x-0 lg:static lg:inset-0"
           >
-            {!isAppLoading && (
+            {/* {!isAppLoading && (
               <EventList
                 loading={isLoadingEvents}
                 isSuccess={isSuccess}
                 events={events}
               />
-            )}
+            )} */}
           </div>
         </div>
         <div className="flex-1 flex flex-col overflow-hidden">

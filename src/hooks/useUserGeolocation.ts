@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import type { Coordinates } from "@/types";
 
 export const useUserGeolocation = (options = {}) => {
   const [location, setLocation] = useState({
@@ -14,7 +15,7 @@ export const useUserGeolocation = (options = {}) => {
     ...options,
   };
 
-  const getCurrentPosition = useCallback(() => {
+  const getCurrentPosition = useCallback((): Promise<Coordinates> => {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
         reject(new Error("Geolocation is not supported"));
