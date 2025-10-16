@@ -6,6 +6,15 @@ export type Coordinates = { lng: Longitude; lat: Latitude };
 export type Date = string; // ISO 8601 format: YYYY-MM-DD
 export type PlaceType = "postcode" | "locality" | "district" | "region";
 
+export interface Filters {
+  lng: Longitude;
+  lat: Latitude;
+  placeType: PlaceType;
+  radius: number; // in kilometers
+  eventTypeId: EventTypeId;
+  date: Date;
+}
+
 export interface MapboxFeature {
   id: string;
   type: "Feature";
@@ -27,13 +36,11 @@ export interface MapboxFeature {
   }[];
 }
 
-export interface Filters {
-  lng: Longitude;
-  lat: Latitude;
-  placeType: PlaceType;
-  radius: number; // in kilometers
-  eventTypeId: EventTypeId;
-  date: Date;
+export type EventTypeId = string;
+export interface EventType {
+  id: EventTypeId;
+  title: string;
+  description: string;
 }
 
 export interface EventItem {
@@ -42,12 +49,4 @@ export interface EventItem {
   type: string;
   coordinates: [number, number];
   date: string;
-}
-
-export type EventTypeId = string;
-
-export interface EventType {
-  id: EventTypeId;
-  title: string;
-  description: string;
 }

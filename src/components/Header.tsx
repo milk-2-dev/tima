@@ -19,7 +19,7 @@ import { useSearchParams } from "react-router";
 import LocationFilter from "./filters/locationFilter";
 import DateFilter from "./filters/dateFilter";
 
-import type { Filters, MapboxFeature } from "@/types";
+import type { Filters, MapboxFeature, EventType } from "@/types";
 
 type Props = {
   filters: Filters;
@@ -36,6 +36,9 @@ function Header({ filters, onChangeFilters, loading }: Props) {
   const radiusInput = useId();
   const [radiusValue, setRadiusValue] = useState<number>(0);
 
+  const eventTypeSelect = useId();
+  const [eventTypeValue, setEventTypeValue] = useState<string | undefined>();
+
   // const [selectedCityRadius, setSelectedCityRadius] = useState<number>(0);
 
   // const [selectedEventType, setSelectedEventType] = useState<
@@ -44,9 +47,7 @@ function Header({ filters, onChangeFilters, loading }: Props) {
 
   // const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
-  const [eventTypes, setEventTypes] = useState<
-    { id: string; title: string; description: string }[]
-  >([]);
+  const [eventTypes, setEventTypes] = useState<EventType[]>([]);
 
   const {
     loading: isLoadingTypes,
@@ -81,6 +82,10 @@ function Header({ filters, onChangeFilters, loading }: Props) {
   useEffect(() => {
     setRadiusValue(Number(filters.radius) || 0);
   }, [filters.radius]);
+
+  useEffect(() => {
+    setEventTypeValue(filters.eventTypeId);
+  }, [filters.eventTypeId]);
 
   // useEffect(() => {
   //   const radiusParam = searchParams.get("radius") || "";
@@ -200,26 +205,31 @@ function Header({ filters, onChangeFilters, loading }: Props) {
               </div>
             </div>
             <div>
-              {/* <Select
-                value={selectedEventType}
-                onValueChange={(value) => {
-                  setSelectedEventType(value);
-                }}
-              >
-                <SelectTrigger id="interest">
-                  <SelectValue placeholder="Chess" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {isSuccess &&
-                      eventTypes.map((type) => (
-                        <SelectItem key={type.id} value={type.id.toString()}>
-                          {type.title}
-                        </SelectItem>
-                      ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select> */}
+              {isLoadingTypes ? (
+                "Loading..."
+              ) : (
+                <Select
+                  value={eventTypeValue}
+                  onValueChange={(value) => {
+                    setEventTypeValue(value);
+                    onChangeFilters({ ...filters, eventTypeId: value });
+                  }}
+                >
+                  <SelectTrigger id={eventTypeSelect}>
+                    <SelectValue placeholder="Chess" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {isSuccess &&
+                        eventTypes.map((type) => (
+                          <SelectItem key={type.id} value={type.id.toString()}>
+                            {type.title}
+                          </SelectItem>
+                        ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              )}
             </div>
             <div>
               {/* <DateFilter
