@@ -24,7 +24,7 @@ function App() {
     executeQuery,
     isSuccess,
   } = useSupabaseQuery();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const { getCurrentPosition } = useUserGeolocation();
 
   const [events, setEvents] = useState<any[]>([]);
@@ -87,21 +87,22 @@ function App() {
   });
 
   useEffect(() => {
-    // console.log("from app.tsx filters changed", filters);
+    if (Object.keys(filters).length > 0) {
+      fetchEvents();
+    }
+    console.log("Filters changed - ", filters);
   }, [filters]);
   // useEffect(() => {
   //   fetchEvents();
   // }, [searchParams]);
 
-  // const fetchEvents = async () => {
-  //   const searchParamsObj = Object.fromEntries(searchParams.entries());
-  //   const response = await executeQuery(() =>
-  //     eventService.getEvents(searchParamsObj)
-  //   );
-  //   if (response && response.data) {
-  //     setEvents(response.data);
-  //   }
-  // };
+  const fetchEvents = async () => {
+    // const searchParamsObj = Object.fromEntries(searchParams.entries());
+    const response = await executeQuery(() => eventService.getEvents(filters));
+    if (response && response.data) {
+      setEvents(response.data);
+    }
+  };
 
   const handleChangeFilters = (newFilters: typeof filters) => {
     setFilters((prev) => ({ ...prev, ...newFilters }));
@@ -121,13 +122,11 @@ function App() {
             className="-translate-x-full ease-in fixed inset-y-0 left-0 z-30 w-96
         overflow-y-auto transition duration-300 transform bg-white lg:translate-x-0 lg:static lg:inset-0"
           >
-            {/* {!isAppLoading && (
-              <EventList
-                loading={isLoadingEvents}
-                isSuccess={isSuccess}
-                events={events}
-              />
-            )} */}
+            <EventList
+              loading={isAppLoading || isLoadingEvents}
+              isSuccess={isSuccess}
+              events={events}
+            />
           </div>
         </div>
         <div className="flex-1 flex flex-col overflow-hidden">

@@ -1,38 +1,31 @@
+import type { EventItem, Filters } from "@/types";
 import { supabase } from "../apiClient";
-
-type EventFilters = {
-  date: string;
-  interest: string;
-  location: { latitude: number; longitude: number };
-  radius: number; // in kilometers
-};
-
-interface Event {
-  id: string;
-  title: string;
-  description: string;
-  date: string;
-  type: string;
-  location: { latitude: number; longitude: number };
-  created_at: string;
-}
+import { getDistanceKm } from "@/lib/utils";
 
 export const eventService = {
   // Отримати всіх користувачів
-  async getEvents(filters: EventFilters): Promise<Event[]> {
+  async getEvents(filters: Filters): Promise<EventItem[]> {
     let query = supabase.from("events").select("*");
+
+    // debugger
+
+    console.log("Filters in service:", filters);
 
     if (filters.date) {
       query = query.gte("date", filters.date);
     }
 
-    if (filters.interest) {
-      query = query.eq("type", filters.interest);
+    if (filters.eventTypeId) {
+      query = query.eq("type", filters.eventTypeId);
     }
 
-    if (filters.location || filters.radius) {
-      query = query.within("location", filters.location, filters.radius * 1000);
-    }
+    // if (filters.lng && filters.lat || filters.radius) {
+    //   query = query.rpc('events_within_radius', {
+    //     lat: filters.lat,
+    //     lng: filters.lng,
+    //     radius_meters: filters.radius * 1000, // якщо radius у км
+    //   });
+    // }
 
     query.range(0, 9);
 
@@ -41,7 +34,29 @@ export const eventService = {
     });
 
     if (error) throw error;
-    return data;
+
+    const filtered = (data as EventItem[]).filter((event) => {
+      const [lng, lat] = event.location.coordinates;
+  
+      // обчислюємо відстань
+      const distance = getDistanceKm(filters.lat, filters.lng, lat, lng);
+  
+      const matchesRadius = distance <= filters.radius;
+  
+      return matchesRadius;
+    });
+  
+    // 3️⃣ Сортуємо за відстанню (опціонально)
+    const sorted = filtered.sort((a, b) => {
+      const [lngA, latA] = a.location.coordinates;
+      const [lngB, latB] = b.location.coordinates;
+      const distA = getDistanceKm(filters.lat, filters.lng, latA, lngA);
+      const distB = getDistanceKm(filters.lat, filters.lng, latB, lngB);
+      return distA - distB;
+    });
+
+
+    return sorted;
   },
 
   // Отримати користувача по ID
@@ -89,3 +104,44 @@ export const eventService = {
   //   return true;
   // },
 };
+
+
+
+// create or replace function events_within_radius(
+//   lat double precision,
+//   lng double precision,
+//   radius double precision,
+//   date date default null,
+//   type text default null
+// )
+// returns setof events
+// language sql
+// as $$
+//   select *
+//   from events
+//   where
+//     -- фільтр по відстані
+//     ST_DWithin(
+//       ST_SetSRID(
+//         ST_MakePoint(
+//           (location->'coordinates'->>0)::float,
+//           (location->'coordinates'->>1)::float
+//         ),
+//         4326
+//       )::geography,
+//       ST_SetSRID(ST_MakePoint(lng, lat), 4326)::geography,
+//       radius
+//     )
+
+//     -- фільтр по даті (якщо переданий параметр)
+//     and (
+//       date is null
+//       or date = date
+//     )
+
+//     -- фільтр по типу (якщо переданий параметр)
+//     and (
+//       type is null
+//       or type = type
+//     );
+// $$;

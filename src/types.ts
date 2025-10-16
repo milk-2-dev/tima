@@ -2,7 +2,7 @@ export type Latitude = number;
 export type Longitude = number;
 
 export type Coordinates = { lng: Longitude; lat: Latitude };
-
+export type Location = { type: string; coordinates: [Longitude, Latitude] };
 export type Date = string; // ISO 8601 format: YYYY-MM-DD
 export type PlaceType = "postcode" | "locality" | "district" | "region";
 
@@ -45,8 +45,11 @@ export interface EventType {
 
 export interface EventItem {
   id: string;
-  name: string;
+  title: string;
+  description: string;
   type: string;
-  coordinates: [number, number];
+  location: Location;
   date: string;
+  min_players: number;
+  max_players: number;
 }
