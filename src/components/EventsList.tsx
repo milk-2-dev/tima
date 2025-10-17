@@ -29,7 +29,6 @@ export function SkeletonDemo() {
 }
 
 function EventsList({ loading, isSuccess, events }: Props) {
-  console.log("EventsList - ", { loading, isSuccess, events });
   return (
     <div className="p-4">
       {loading ? (

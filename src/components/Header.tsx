@@ -80,8 +80,8 @@ function Header({ filters, onChangeFilters, loading }: Props) {
     const newFilters = {
       ...filters,
       placeType: locationDetails.properties.feature_type,
-      lat: latitude,
-      lng: longitude,
+      lat: Number(latitude),
+      lng: Number(longitude),
     };
 
     onChangeFilters(newFilters);

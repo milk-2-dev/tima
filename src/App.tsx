@@ -12,7 +12,7 @@ import Header from "@/components/Header";
 import EventList from "@/components/EventsList";
 import Map from "@/components/Map";
 
-import type { Filters, Coordinates } from "@/types";
+import type { Filters, Coordinates, EventItem } from "@/types";
 
 const defaultCenter: Coordinates = { lat: 52.517037, lng: 13.38886 }; // Default to Berlin
 const defaultPlaceType = "locality";
@@ -27,7 +27,7 @@ function App() {
   const [searchParams] = useSearchParams();
   const { getCurrentPosition } = useUserGeolocation();
 
-  const [events, setEvents] = useState<any[]>([]);
+  const [events, setEvents] = useState<EventItem[]>([]);
   // const [location, setLocation] = useState(defaultCenter);
   const [isAppLoading, setIsAppLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -55,10 +55,12 @@ function App() {
         }));
       } else {
         console.log("📍 Використовую локацію із урл...");
+        const test1 = Number(latitude);
+        const test2 = Number(longitude);
         setFilters((prev) => ({
           ...prev,
-          lat: latitude,
-          lng: longitude,
+          lat: test1,
+          lng: test2,
         }));
       }
     } catch (err) {
@@ -84,20 +86,24 @@ function App() {
     lat: defaultCenter.lat,
     lng: defaultCenter.lng,
     placeType: defaultPlaceType,
+    radius: 0
   });
 
   useEffect(() => {
     if (Object.keys(filters).length > 0) {
       fetchEvents();
     }
-    console.log("Filters changed - ", filters);
   }, [filters]);
-  // useEffect(() => {
-  //   fetchEvents();
-  // }, [searchParams]);
+
+  const mapCenter = useMemo(() => {
+    return {
+      lat: Number(filters.lat),
+      lng: Number(filters.lng),
+    };
+  }, [filters.lat, filters.lng]);
 
   const fetchEvents = async () => {
-    // const searchParamsObj = Object.fromEntries(searchParams.entries());
+    console.log("Fetching events start");
     const response = await executeQuery(() => eventService.getEvents(filters));
     if (response && response.data) {
       setEvents(response.data);
@@ -122,27 +128,32 @@ function App() {
             className="-translate-x-full ease-in fixed inset-y-0 left-0 z-30 w-96
         overflow-y-auto transition duration-300 transform bg-white lg:translate-x-0 lg:static lg:inset-0"
           >
-            <EventList
-              loading={isAppLoading || isLoadingEvents}
-              isSuccess={isSuccess}
-              events={events}
-            />
+            {!isAppLoading && (
+              <EventList
+                loading={isLoadingEvents}
+                isSuccess={isSuccess}
+                events={events}
+              />
+            )}
           </div>
         </div>
         <div className="flex-1 flex flex-col overflow-hidden">
           <main className="flex flex-col flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 relative">
-            {!isAppLoading && <div>test</div>}
-            {/* <Map
-              events={events}
-              center={location}
-              onMove={(newCenter, newZoom) =>
-                updateUrlParams({
-                  lat: newCenter.lat,
-                  lng: newCenter.lng,
-                  zoom: newZoom,
-                })
-              }
-            /> */}
+            {!isAppLoading && (
+              <Map
+                events={events}
+                center={mapCenter}
+                radius={filters.radius}
+                // onMove={(newCenter, newZoom) =>
+                // updateUrlParams({
+                //   lat: newCenter.lat,
+                //   lng: newCenter.lng,
+                //   zoom: newZoom,
+                // })
+                // }
+                onMove={(newCenter, newZoom) => {}}
+              />
+            )}
           </main>
         </div>
       </div>

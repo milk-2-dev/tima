@@ -7,10 +7,6 @@ export const eventService = {
   async getEvents(filters: Filters): Promise<EventItem[]> {
     let query = supabase.from("events").select("*");
 
-    // debugger
-
-    console.log("Filters in service:", filters);
-
     if (filters.date) {
       query = query.gte("date", filters.date);
     }
@@ -18,14 +14,6 @@ export const eventService = {
     if (filters.eventTypeId) {
       query = query.eq("type", filters.eventTypeId);
     }
-
-    // if (filters.lng && filters.lat || filters.radius) {
-    //   query = query.rpc('events_within_radius', {
-    //     lat: filters.lat,
-    //     lng: filters.lng,
-    //     radius_meters: filters.radius * 1000, // якщо radius у км
-    //   });
-    // }
 
     query.range(0, 9);
 
@@ -37,15 +25,15 @@ export const eventService = {
 
     const filtered = (data as EventItem[]).filter((event) => {
       const [lng, lat] = event.location.coordinates;
-  
+
       // обчислюємо відстань
       const distance = getDistanceKm(filters.lat, filters.lng, lat, lng);
-  
+
       const matchesRadius = distance <= filters.radius;
-  
+
       return matchesRadius;
     });
-  
+
     // 3️⃣ Сортуємо за відстанню (опціонально)
     const sorted = filtered.sort((a, b) => {
       const [lngA, latA] = a.location.coordinates;
@@ -54,7 +42,6 @@ export const eventService = {
       const distB = getDistanceKm(filters.lat, filters.lng, latB, lngB);
       return distA - distB;
     });
-
 
     return sorted;
   },
@@ -104,44 +91,3 @@ export const eventService = {
   //   return true;
   // },
 };
-
-
-
-// create or replace function events_within_radius(
-//   lat double precision,
-//   lng double precision,
-//   radius double precision,
-//   date date default null,
-//   type text default null
-// )
-// returns setof events
-// language sql
-// as $$
-//   select *
-//   from events
-//   where
-//     -- фільтр по відстані
-//     ST_DWithin(
-//       ST_SetSRID(
-//         ST_MakePoint(
-//           (location->'coordinates'->>0)::float,
-//           (location->'coordinates'->>1)::float
-//         ),
-//         4326
-//       )::geography,
-//       ST_SetSRID(ST_MakePoint(lng, lat), 4326)::geography,
-//       radius
-//     )
-
-//     -- фільтр по даті (якщо переданий параметр)
-//     and (
-//       date is null
-//       or date = date
-//     )
-
-//     -- фільтр по типу (якщо переданий параметр)
-//     and (
-//       type is null
-//       or type = type
-//     );
-// $$;
