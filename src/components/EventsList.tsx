@@ -8,17 +8,13 @@ import {
 } from "@/components/ui/item";
 import { Skeleton } from "@/components/ui/skeleton";
 
+import type { EventItem } from "@/types";
+
 type Props = {
   loading: boolean;
   isSuccess: boolean;
-  events: Event[] | null;
+  events: EventItem[];
 };
-
-interface Event {
-  id: string;
-  title: string;
-  description: string;
-}
 
 export function SkeletonDemo() {
   return (
@@ -41,9 +37,9 @@ function EventsList({ loading, isSuccess, events }: Props) {
           <div className="my-4" />
           <SkeletonDemo />
         </>
-      ) : isSuccess && events !== null ? (
-        events.map((event) => {
-          return <EventsListItem key={event.id} event={event} />;
+      ) : isSuccess && events.length > 0 ? (
+        events.map((item: EventItem) => {
+          return <EventsListItem key={item.id} itemData={item} />;
         })
       ) : (
         "No events found"
@@ -52,19 +48,19 @@ function EventsList({ loading, isSuccess, events }: Props) {
   );
 }
 
-function EventsListItem({ event }: { event: Event }) {
+function EventsListItem({ itemData }: { itemData: EventItem }) {
   return (
     <>
       <Item variant="outline" className="mb-4">
         <ItemContent>
-          <ItemTitle>{event.title}</ItemTitle>
-          <ItemDescription>{event.description}</ItemDescription>
+          <ItemTitle>{itemData.title}</ItemTitle>
+          <ItemDescription>{itemData.description}</ItemDescription>
         </ItemContent>
         <ItemActions>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => console.log(`Event ID: ${event.id}`)}
+            onClick={() => console.log(`Event ID: ${itemData.id}`)}
           >
             Action
           </Button>
