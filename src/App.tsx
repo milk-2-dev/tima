@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useContext } from "react";
 import { useSearchParams } from "react-router";
 import { useSupabaseQuery } from "@/hooks/useSupabaseQuery";
 import { useUserGeolocation } from "@/hooks/useUserGeolocation";
@@ -13,6 +13,8 @@ import EventList from "@/components/EventsList";
 import Map from "@/components/Map";
 
 import type { Filters, Coordinates, EventItem } from "@/types";
+
+import { FiltersContext } from "@/contexts/FiltersContext";
 
 const defaultCenter: Coordinates = { lat: 52.517037, lng: 13.38886 }; // Default to Berlin
 const defaultPlaceType = "locality";
@@ -86,13 +88,19 @@ function App() {
     lat: defaultCenter.lat,
     lng: defaultCenter.lng,
     placeType: defaultPlaceType,
-    radius: 0
+    radius: 0,
   });
 
+  const contextFilters = useContext(FiltersContext);
+
   useEffect(() => {
-    if (Object.keys(filters).length > 0) {
-      fetchEvents();
-    }
+    const timeout = setTimeout(() => {
+      if (Object.keys(filters).length) {
+        contextFilters.updateValue(filters);
+        fetchEvents()
+      };
+    }, 300);
+    return () => clearTimeout(timeout);
   }, [filters]);
 
   const mapCenter = useMemo(() => {

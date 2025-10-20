@@ -4,13 +4,14 @@ import { createBrowserRouter } from "react-router";
 import { RouterProvider } from "react-router/dom";
 import "./index.css";
 import App from "./App.tsx";
+import { AppProvider } from "@/contexts/AppProvider.tsx";
 
-const router = createBrowserRouter([
-  { index: true, Component: App }
-]);
+const router = createBrowserRouter([{ index: true, Component: App }]);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <AppProvider>
+      <RouterProvider router={router} />
+    </AppProvider>
   </StrictMode>
 );
