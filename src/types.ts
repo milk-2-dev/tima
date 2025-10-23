@@ -29,7 +29,7 @@ export interface Filters {
   radius: number; // in kilometers
   eventTypeId: EventTypeId;
   eventCategoryId: EventCategoryId;
-  date: Date;
+  start: Date;
 }
 
 export interface MapboxFeature {
@@ -61,22 +61,4 @@ export type EventCategoryId = string;
 //   description: string;
 // }
 
-export interface EventItem {
-  id: string;
-  title: string;
-  description: string;
-  category: {
-    id: EventCategoryId;
-    title: string;
-    description: string;
-  };
-  type: {
-    id: EventTypeId;
-    title: string;
-    description: string;
-  };
-  location: Location;
-  date: string;
-  min_players: number;
-  max_players: number;
-}
+export type EventItem = EventWithRelations;

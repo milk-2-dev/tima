@@ -60,40 +60,43 @@ export type Database = {
         Row: {
           author_id: string
           created_at: string
-          date: string
           description: string
+          end_datetime: string | null
           event_category_id: string
           event_type_id: string
           id: string
           location: Json
           max_players: number | null
           min_players: number | null
+          start_datetime: string
           title: string
         }
         Insert: {
           author_id: string
           created_at?: string
-          date?: string
           description?: string
+          end_datetime?: string | null
           event_category_id: string
           event_type_id: string
           id?: string
           location: Json
           max_players?: number | null
           min_players?: number | null
+          start_datetime?: string
           title?: string
         }
         Update: {
           author_id?: string
           created_at?: string
-          date?: string
           description?: string
+          end_datetime?: string | null
           event_category_id?: string
           event_type_id?: string
           id?: string
           location?: Json
           max_players?: number | null
           min_players?: number | null
+          start_datetime?: string
           title?: string
         }
         Relationships: [
@@ -383,14 +386,15 @@ export type Database = {
         Returns: {
           author_id: string
           created_at: string
-          date: string
           description: string
+          end_datetime: string | null
           event_category_id: string
           event_type_id: string
           id: string
           location: Json
           max_players: number | null
           min_players: number | null
+          start_datetime: string
           title: string
         }[]
         SetofOptions: {

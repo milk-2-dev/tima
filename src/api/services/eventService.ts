@@ -6,12 +6,12 @@ export const eventService = {
   // Отримати всіх користувачів
   async getEvents(filters: Filters): Promise<EventWithRelations[]> {
     let query = supabase.from("events").select(`
-      id, title, description, date, location, min_players, max_players,
+      id, title, description, start_datetime, end_datetime, location, min_players, max_players,
       category: event_categories!event_category_id (id, title, description),
       type: event_types!event_type_id (id, title, description)`);
 
-    if (filters.date) {
-      query = query.gte("date", filters.date);
+    if (filters.start) {
+      query = query.gte("start_datetime", filters.start);
     }
 
     if (filters.eventCategoryId) {
@@ -20,7 +20,7 @@ export const eventService = {
 
     query.limit(20);
 
-    const { data, error } = await query.order("date", {
+    const { data, error } = await query.order("start_datetime", {
       ascending: false,
     });
 

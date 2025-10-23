@@ -29,11 +29,12 @@ function EventsList({ loading, isSuccess, events }: Props) {
     if (!events || events.length === 0) return [];
 
     return events.reduce((acc, event) => {
-      const dateKey = event.date.split("T")[0]; // "2025-10-21"
+      const dateKey: string = event.start_datetime.split("T")[0]; // "2025-10-21"
+
       if (!acc[dateKey]) acc[dateKey] = [];
       acc[dateKey].push(event);
       return acc;
-    }, {});
+    }, {} as { [key: string]: EventItem[] });
   }, [events]);
 
   return (
@@ -59,7 +60,7 @@ function EventsList({ loading, isSuccess, events }: Props) {
                   return <EventsListItem key={item.id} itemData={item} />;
                 })
               ) : (
-                <EventsListEmpty date={date} />
+                <EventsListIsEmpty date={date} />
               )}
             </div>
           ))
@@ -119,7 +120,7 @@ function EventsListItem({ itemData }: { itemData: EventItem }) {
   );
 }
 
-function EventsListEmpty(date) {
+function EventsListIsEmpty({date}: {date: string}) {
   const text = `No events found for ${date}`;
 
   return (

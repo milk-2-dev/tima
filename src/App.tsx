@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useContext } from "react";
+import { useState, useEffect, useMemo, useContext, useCallback } from "react";
 import { useSearchParams } from "react-router";
 import { useUserGeolocation } from "@/hooks/useUserGeolocation";
 import { useQuerySync } from "@/hooks/useQuerySync";
@@ -26,7 +26,7 @@ function App() {
 
   const [filters, setFilters] = useState({} as Filters);
 
-  const initializeApp = async () => {
+  const initializeApp = useCallback(async () => {
     try {
       setIsAppLoading(true);
 
@@ -61,14 +61,14 @@ function App() {
     } finally {
       setIsAppLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     initializeApp();
-  }, []);
+  }, [initializeApp]);
 
   useQuerySync(filters, setFilters, {
-    date: today,
+    start: today,
     eventCategoryId: "e31fe882-a8cc-4644-bde9-ed57356dfcef",
     lat: defaultCenter.lat,
     lng: defaultCenter.lng,
