@@ -49,8 +49,7 @@ function EventsList({ loading, isSuccess, events }: Props) {
             <div className="my-4" />
             <SkeletonDemo />
           </>
-        ) : (
-          isSuccess &&
+        ) : isSuccess && Object.entries(groupByDateEvents).length > 0 ? (
           Object.entries(groupByDateEvents).map(([date, events]) => (
             <div key={date} className="">
               <div className="text-white py-4 sticky top-0 shadow-sm z-10">
@@ -58,15 +57,14 @@ function EventsList({ loading, isSuccess, events }: Props) {
                   {date}
                 </h4>
               </div>
-              {events.length > 0 ? (
+              {events.length > 0 &&
                 events.map((item: EventItem) => {
                   return <EventsListItem key={item.id} itemData={item} />;
-                })
-              ) : (
-                <EventsListIsEmpty date={date} />
-              )}
+                })}
             </div>
           ))
+        ) : (
+          <EventsListIsEmpty />
         )}
       </div>
     </div>
@@ -92,7 +90,7 @@ function EventsListItem({ itemData }: { itemData: EventItem }) {
   let distance = null;
 
   if (coords) {
-    const km = getDistanceKm(coords.lat, coords.lng, lat, lng)
+    const km = getDistanceKm(coords.lat, coords.lng, lat, lng);
     distance = Math.ceil(km * 10) / 10;
   }
 
@@ -147,8 +145,8 @@ function EventsListItem({ itemData }: { itemData: EventItem }) {
   );
 }
 
-function EventsListIsEmpty({ date }: { date: string }) {
-  const text = `No events found for ${date}`;
+function EventsListIsEmpty() {
+  const text = `No events found`;
 
   return (
     <Item>
