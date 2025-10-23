@@ -3,7 +3,7 @@ import { useId, useMemo } from "react";
 
 import { useSupabaseQuery } from "@/hooks/useSupabaseQuery";
 
-import { eventTypesService } from "@/api/services/eventTypesService";
+import { eventCategoriesService } from "@/api/services/eventCategoriesService";
 
 import { Input } from "@/components/ui/input";
 import {
@@ -30,9 +30,9 @@ function Header({ filters, onChangeFilters, loading }: Props) {
   const radiusInput = useId();
   const [radiusValue, setRadiusValue] = useState<number>(0);
 
-  const eventTypeSelect = useId();
-  const [eventTypes, setEventTypes] = useState<EventType[]>([]);
-  const [eventTypeValue, setEventTypeValue] = useState<string | undefined>();
+  const eventCategorySelect = useId();
+  const [eventCategories, setEventCategories] = useState<EventType[]>([]);
+  const [eventCategoryValue, setEventCategoryValue] = useState<string | undefined>();
 
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
@@ -42,15 +42,15 @@ function Header({ filters, onChangeFilters, loading }: Props) {
     isSuccess,
   } = useSupabaseQuery();
 
-  const fetchEventTypes = async () => {
-    const result = await executeQuery(() => eventTypesService.getData());
+  const fetchEventCategories = async () => {
+    const result = await executeQuery(() => eventCategoriesService.getData());
     if (result?.data) {
-      setEventTypes(result.data);
+      setEventCategories(result.data);
     }
   };
 
   useEffect(() => {
-    fetchEventTypes();
+    fetchEventCategories();
   }, []);
 
   const mapCenter = useMemo(() => {
@@ -67,8 +67,8 @@ function Header({ filters, onChangeFilters, loading }: Props) {
   }, [filters.radius]);
 
   useEffect(() => {
-    setEventTypeValue(filters.eventTypeId);
-  }, [filters.eventTypeId]);
+    setEventCategoryValue(filters.eventCategoryId);
+  }, [filters.eventCategoryId]);
 
   useEffect(() => {
     setSelectedDate(new Date(filters.date));
@@ -157,20 +157,20 @@ function Header({ filters, onChangeFilters, loading }: Props) {
                 "Loading..."
               ) : (
                 <Select
-                  value={eventTypeValue}
+                  value={eventCategoryValue}
                   onValueChange={(value) => {
-                    setEventTypeValue(value);
-                    onChangeFilters({ ...filters, eventTypeId: value });
+                    setEventCategoryValue(value);
+                    onChangeFilters({ ...filters, eventCategoryId: value });
                   }}
                 >
-                  <SelectTrigger id={eventTypeSelect}>
+                  <SelectTrigger id={eventCategorySelect}>
                     <SelectValue placeholder="Chess" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
                       {isSuccess &&
-                        eventTypes.map((type) => (
-                          <SelectItem key={type.id} value={type.id.toString()}>
+                        eventCategories.map((type) => (
+                          <SelectItem key={type.id} value={type.id}>
                             {type.title}
                           </SelectItem>
                         ))}

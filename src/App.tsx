@@ -69,11 +69,11 @@ function App() {
 
   useQuerySync(filters, setFilters, {
     date: today,
-    eventTypeId: "1c2e168e-00d9-4895-a10d-9f18646896c2",
+    eventCategoryId: "e31fe882-a8cc-4644-bde9-ed57356dfcef",
     lat: defaultCenter.lat,
     lng: defaultCenter.lng,
     placeType: defaultPlaceType,
-    radius: 0,
+    radius: 5,
   });
 
   const contextFilters = useContext(FiltersContext);

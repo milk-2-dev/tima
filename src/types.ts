@@ -1,3 +1,19 @@
+import type { Database } from "@/types/supabase";
+
+type EventRow = Database["public"]["Tables"]["events"]["Row"];
+type EventCategory = Database["public"]["Tables"]["event_categories"]["Row"];
+type EventType = Database["public"]["Tables"]["event_types"]["Row"];
+
+type CleanEventBase = Omit<
+  EventRow,
+  "author_id" | "created_at" | "event_category_id" | "event_type_id"
+>;
+
+export type EventWithRelations = CleanEventBase & {
+  category: Omit<EventCategory, "created_at">;
+  type: Omit<EventType, "created_at">;
+};
+
 export type Latitude = number;
 export type Longitude = number;
 
@@ -12,6 +28,7 @@ export interface Filters {
   placeType: PlaceType;
   radius: number; // in kilometers
   eventTypeId: EventTypeId;
+  eventCategoryId: EventCategoryId;
   date: Date;
 }
 
@@ -37,17 +54,27 @@ export interface MapboxFeature {
 }
 
 export type EventTypeId = string;
-export interface EventType {
-  id: EventTypeId;
-  title: string;
-  description: string;
-}
+export type EventCategoryId = string;
+// export interface EventType {
+//   id: EventTypeId;
+//   title: string;
+//   description: string;
+// }
 
 export interface EventItem {
   id: string;
   title: string;
   description: string;
-  type: string;
+  category: {
+    id: EventCategoryId;
+    title: string;
+    description: string;
+  };
+  type: {
+    id: EventTypeId;
+    title: string;
+    description: string;
+  };
   location: Location;
   date: string;
   min_players: number;

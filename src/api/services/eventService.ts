@@ -1,18 +1,21 @@
-import type { EventItem, Filters } from "@/types";
+import type { EventWithRelations, Filters } from "@/types";
 import { supabase } from "../apiClient";
 import { getDistanceKm } from "@/lib/utils";
 
 export const eventService = {
   // Отримати всіх користувачів
-  async getEvents(filters: Filters): Promise<EventItem[]> {
-    let query = supabase.from("events").select("*");
+  async getEvents(filters: Filters): Promise<EventWithRelations[]> {
+    let query = supabase.from("events").select(`
+      id, title, description, date, location, min_players, max_players,
+      category: event_categories!event_category_id (id, title, description),
+      type: event_types!event_type_id (id, title, description)`);
 
     if (filters.date) {
       query = query.gte("date", filters.date);
     }
 
-    if (filters.eventTypeId) {
-      query = query.eq("type", filters.eventTypeId);
+    if (filters.eventCategoryId) {
+      query = query.eq("event_category_id", filters.eventCategoryId);
     }
 
     query.limit(20);
@@ -23,7 +26,7 @@ export const eventService = {
 
     if (error) throw error;
 
-    const filtered = (data as EventItem[]).filter((event) => {
+    const filtered = data.filter((event) => {
       const [lng, lat] = event.location.coordinates;
 
       // обчислюємо відстань
