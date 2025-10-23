@@ -71,6 +71,17 @@ function EventsList({ loading, isSuccess, events }: Props) {
 }
 
 function EventsListItem({ itemData }: { itemData: EventItem }) {
+  const startDateString: string = itemData.start_datetime.split("T")[0];
+  const startTimeString: string = itemData.start_datetime
+    .split("T")[1]
+    .slice(0, 5);
+  const endTimeString: string | null =
+    itemData.end_datetime && itemData.end_datetime.split("T")[1].slice(0, 5);
+
+  const eventTime = `${startTimeString}${
+    endTimeString ? ` - ${endTimeString}` : ""
+  }`;
+
   return (
     <Item asChild>
       <a href="#">
@@ -80,7 +91,7 @@ function EventsListItem({ itemData }: { itemData: EventItem }) {
               {itemData.type.title}
             </p>
 
-            <p className="text-sm">28.10.2025</p>
+            <p className="text-sm shrink-0">{startDateString}</p>
           </div>
 
           <div className="flex mb-2">
@@ -106,7 +117,7 @@ function EventsListItem({ itemData }: { itemData: EventItem }) {
           <div className="flex justify-between">
             <div className="flex items-center">
               <Timer size={16} className="text-muted-foreground" />
-              <span className="ms-2">18:15 - 19:15</span>
+              <span className="ms-2">{eventTime}</span>
             </div>
 
             <div className="flex items-center">
@@ -120,7 +131,7 @@ function EventsListItem({ itemData }: { itemData: EventItem }) {
   );
 }
 
-function EventsListIsEmpty({date}: {date: string}) {
+function EventsListIsEmpty({ date }: { date: string }) {
   const text = `No events found for ${date}`;
 
   return (
