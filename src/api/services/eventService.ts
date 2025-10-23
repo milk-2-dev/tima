@@ -7,6 +7,7 @@ export const eventService = {
   async getEvents(filters: Filters): Promise<EventWithRelations[]> {
     let query = supabase.from("events").select(`
       id, title, description, start_datetime, end_datetime, location, min_players, max_players,
+      adress, venue_name,
       category: event_categories!event_category_id (id, title, description),
       type: event_types!event_type_id (id, title, description)`);
 

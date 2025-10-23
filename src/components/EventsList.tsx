@@ -1,10 +1,13 @@
 import { useMemo } from "react";
 import { MapPin, UserRoundCheck, Timer } from "lucide-react";
 
+import { useUserGeolocation } from "@/hooks/useUserGeolocation";
+
 import { Item, ItemContent, ItemTitle } from "@/components/ui/item";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import type { EventItem } from "@/types";
+import { getDistanceKm } from "@/lib/utils";
 
 type Props = {
   loading: boolean;
@@ -71,6 +74,8 @@ function EventsList({ loading, isSuccess, events }: Props) {
 }
 
 function EventsListItem({ itemData }: { itemData: EventItem }) {
+  const { coords } = useUserGeolocation();
+
   const startDateString: string = itemData.start_datetime.split("T")[0];
   const startTimeString: string = itemData.start_datetime
     .split("T")[1]
@@ -81,6 +86,15 @@ function EventsListItem({ itemData }: { itemData: EventItem }) {
   const eventTime = `${startTimeString}${
     endTimeString ? ` - ${endTimeString}` : ""
   }`;
+
+  const [lng, lat] = itemData.location.coordinates;
+
+  let distance = null;
+
+  if (coords) {
+    const km = getDistanceKm(coords.lat, coords.lng, lat, lng)
+    distance = Math.ceil(km * 10) / 10;
+  }
 
   return (
     <Item asChild>
@@ -107,10 +121,12 @@ function EventsListItem({ itemData }: { itemData: EventItem }) {
           <div className="text-sm flex gap-2 mb-1">
             <MapPin size={16} className="text-muted-foreground" />
             <div>
-              <p className="">BSV Brochterbeck (3.5 km)</p>
-              {/* <p className="text-muted-foreground text-xs">
-                    Brochterbeck, Am Sportweg 5
-                  </p> */}
+              <p className="">
+                {itemData.venue_name} {distance && `(${distance} km)`}
+              </p>
+              <p className="text-muted-foreground text-xs">
+                {itemData.adress.full_address}
+              </p>
             </div>
           </div>
 

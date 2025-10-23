@@ -58,6 +58,7 @@ export type Database = {
       }
       events: {
         Row: {
+          adress: Json
           author_id: string
           created_at: string
           description: string
@@ -70,8 +71,10 @@ export type Database = {
           min_players: number | null
           start_datetime: string
           title: string
+          venue_name: string
         }
         Insert: {
+          adress?: Json
           author_id: string
           created_at?: string
           description?: string
@@ -84,8 +87,10 @@ export type Database = {
           min_players?: number | null
           start_datetime?: string
           title?: string
+          venue_name?: string
         }
         Update: {
+          adress?: Json
           author_id?: string
           created_at?: string
           description?: string
@@ -98,6 +103,7 @@ export type Database = {
           min_players?: number | null
           start_datetime?: string
           title?: string
+          venue_name?: string
         }
         Relationships: [
           {
@@ -384,6 +390,7 @@ export type Database = {
           type?: string
         }
         Returns: {
+          adress: Json
           author_id: string
           created_at: string
           description: string
@@ -396,6 +403,7 @@ export type Database = {
           min_players: number | null
           start_datetime: string
           title: string
+          venue_name: string
         }[]
         SetofOptions: {
           from: "*"

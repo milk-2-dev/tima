@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { Coordinates } from "@/types";
 
 export const useUserGeolocation = (options = {}) => {
@@ -44,6 +44,10 @@ export const useUserGeolocation = (options = {}) => {
       );
     });
   }, [defaultOptions]);
+
+  useEffect(() => {
+    getCurrentPosition();
+  }, []);
 
   return {
     coords: location.coords,

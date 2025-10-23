@@ -4,15 +4,50 @@ type EventRow = Database["public"]["Tables"]["events"]["Row"];
 type EventCategory = Database["public"]["Tables"]["event_categories"]["Row"];
 type EventType = Database["public"]["Tables"]["event_types"]["Row"];
 
-type CleanEventBase = Omit<
+// type CleanEventBase = Omit<
+//   EventRow,
+//   "author_id" | "created_at" | "event_category_id" | "event_type_id"
+// >;
+type EventAdress = {
+  city: string;
+  street: string;
+  building: string;
+  postal_code: string;
+  full_address: string;
+};
+
+type CleanEventBase = Pick<
   EventRow,
-  "author_id" | "created_at" | "event_category_id" | "event_type_id"
+  | "id"
+  | "title"
+  | "description"
+  // | "adress"
+  | "start_datetime"
+  | "end_datetime"
+  | "venue_name"
+  | "location"
 >;
 
-export type EventWithRelations = CleanEventBase & {
-  category: Omit<EventCategory, "created_at">;
-  type: Omit<EventType, "created_at">;
-};
+// export type EventWithRelations = CleanEventBase & {
+//   category: Omit<EventCategory, "created_at">;
+//   type: Omit<EventType, "created_at">;
+// };
+
+// type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
+
+type Expand<T> = T extends object
+  ? {
+      [K in keyof T]: T[K] extends object ? Expand<T[K]> : T[K];
+    }
+  : T;
+
+export type EventWithRelations = Expand<
+  CleanEventBase & {
+    adress: EventAdress;
+    category: Pick<EventCategory, "description" | "id" | "title">;
+    type: Omit<EventType, "created_at">;
+  }
+>;
 
 export type Latitude = number;
 export type Longitude = number;
@@ -55,10 +90,5 @@ export interface MapboxFeature {
 
 export type EventTypeId = string;
 export type EventCategoryId = string;
-// export interface EventType {
-//   id: EventTypeId;
-//   title: string;
-//   description: string;
-// }
 
 export type EventItem = EventWithRelations;
