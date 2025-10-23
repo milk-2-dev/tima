@@ -76,7 +76,7 @@ function EventsListItem({ itemData }: { itemData: EventItem }) {
         <div className="w-full">
           <div className="flex justify-between items-center gap-4">
             <p className="w-full text-muted-foreground text-xs uppercase relative z-0 overflow-hidden after:content-[''] after:absolute after:top-[50%] after:left-[35%] after:border-t after:border-t-gray-200 after:w-full after:-z-10">
-              Training
+              {itemData.type.title}
             </p>
 
             <p className="text-sm">28.10.2025</p>
