@@ -53,8 +53,8 @@ function EventsList({ loading, isSuccess, events }: Props) {
           isSuccess &&
           Object.entries(groupByDateEvents).map(([date, events]) => (
             <div key={date} className="">
-              <div className="text-white py-4 sticky top-0 bg-primary shadow-sm z-10">
-                <h4 className="text-sm text-center leading-none font-medium">
+              <div className="text-white py-4 sticky top-0 shadow-sm z-10">
+                <h4 className="text-sm text-center text-primary leading-none font-medium">
                   {date}
                 </h4>
               </div>
