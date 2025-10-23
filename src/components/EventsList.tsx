@@ -1,13 +1,10 @@
-import { useMemo, useContext, useState } from "react";
+import { useMemo } from "react";
 import { MapPin, UserRoundCheck, Timer } from "lucide-react";
 
 import { Item, ItemContent, ItemTitle } from "@/components/ui/item";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
 
 import type { EventItem } from "@/types";
-
-import { FiltersContext } from "@/contexts/FiltersContext";
 
 type Props = {
   loading: boolean;
@@ -28,51 +25,19 @@ export function SkeletonDemo() {
 }
 
 function EventsList({ loading, isSuccess, events }: Props) {
-  const [useSortBy, setSortBy] = useState("targetDate");
+  const groupByDateEvents = useMemo(() => {
+    if (!events || events.length === 0) return [];
 
-  const filterContext = useContext(FiltersContext);
-
-  const sorrtedEvents = useMemo(() => {
-    return events.filter((item) => {
-      const targetDate = new Date(filterContext.value?.date);
-      const eventDate = new Date(item.date);
-      return useSortBy === "targetDate"
-        ? eventDate.toDateString() === targetDate.toDateString()
-        : eventDate.toDateString() > targetDate.toDateString();
-    });
-  }, [events, useSortBy]);
-
-  const handleTargetDateEvents = () => {
-    setSortBy("targetDate");
-  };
-
-  const handleUpcomingEvents = () => {
-    setSortBy("upcoming");
-  };
+    return events.reduce((acc, event) => {
+      const dateKey = event.date.split("T")[0]; // "2025-10-21"
+      if (!acc[dateKey]) acc[dateKey] = [];
+      acc[dateKey].push(event);
+      return acc;
+    }, {});
+  }, [events]);
 
   return (
     <div className="flex w-full max-w-md flex-col gap-4">
-      <div className="flex items-center gap-4 px-4 pt-4">
-        <div className="flex items-center justify-between gap-2">
-          <Button
-            variant={useSortBy === "upcoming" ? "outline" : "default"}
-            className="max-sm:h-8 max-sm:px-2.5!"
-            onClick={handleTargetDateEvents}
-          >
-            Target date
-          </Button>
-        </div>
-
-        <div className="flex items-center justify-between gap-2">
-          <Button
-            variant={useSortBy === "targetDate" ? "outline" : "default"}
-            className="max-sm:h-8 max-sm:px-2.5!"
-            onClick={handleUpcomingEvents}
-          >
-            Upcoming
-          </Button>
-        </div>
-      </div>
       <div className="flex flex-col">
         {loading ? (
           <>
@@ -80,15 +45,24 @@ function EventsList({ loading, isSuccess, events }: Props) {
             <div className="my-4" />
             <SkeletonDemo />
           </>
-        ) : isSuccess && sorrtedEvents.length > 0 ? (
-          sorrtedEvents.map((item: EventItem) => {
-            return <EventsListItem key={item.id} itemData={item} />;
-          })
         ) : (
-          <EventsListEmpty
-            sortedBy={useSortBy}
-            date={filterContext.value.date}
-          />
+          isSuccess &&
+          Object.entries(groupByDateEvents).map(([date, events]) => (
+            <div key={date} className="">
+              <div className="text-white py-4 sticky top-0 bg-primary shadow-sm z-10">
+                <h4 className="text-sm text-center leading-none font-medium">
+                  {date}
+                </h4>
+              </div>
+              {events.length > 0 ? (
+                events.map((item: EventItem) => {
+                  return <EventsListItem key={item.id} itemData={item} />;
+                })
+              ) : (
+                <EventsListEmpty date={date} />
+              )}
+            </div>
+          ))
         )}
       </div>
     </div>
@@ -145,17 +119,13 @@ function EventsListItem({ itemData }: { itemData: EventItem }) {
   );
 }
 
-function EventsListEmpty(sortedBy, date) {
-  const text = useMemo(() => {
-    return sortedBy === "targetDate"
-      ? `No events found for ${date}`
-      : `No upcoming events found`;
-  }, [sortedBy]);
+function EventsListEmpty(date) {
+  const text = `No events found for ${date}`;
 
   return (
     <Item>
-      <ItemContent>
-        <ItemTitle className="font-semibold">{text}</ItemTitle>
+      <ItemContent className="min-h-24 flex-col justify-center items-center">
+        <ItemTitle className="justify-center">{text}</ItemTitle>
       </ItemContent>
     </Item>
   );

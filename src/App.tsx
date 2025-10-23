@@ -1,38 +1,26 @@
 import { useState, useEffect, useMemo, useContext } from "react";
 import { useSearchParams } from "react-router";
-import { useSupabaseQuery } from "@/hooks/useSupabaseQuery";
 import { useUserGeolocation } from "@/hooks/useUserGeolocation";
 import { useQuerySync } from "@/hooks/useQuerySync";
-
 import "./App.css";
-
-import { eventService } from "@/api/services/eventService";
 
 import Header from "@/components/Header";
 import EventList from "@/components/EventsList";
 import Map from "@/components/Map";
 
-import type { Filters, Coordinates, EventItem } from "@/types";
+import type { Filters, Coordinates } from "@/types";
 
 import { FiltersContext } from "@/contexts/FiltersContext";
+import { useEvents } from "@/contexts/EventsContext";
 
 const defaultCenter: Coordinates = { lat: 52.517037, lng: 13.38886 }; // Default to Berlin
 const defaultPlaceType = "locality";
 
 function App() {
-  const {
-    loading: isLoadingEvents,
-    data,
-    executeQuery,
-    isSuccess,
-  } = useSupabaseQuery();
   const [searchParams] = useSearchParams();
   const { getCurrentPosition } = useUserGeolocation();
 
-  const [events, setEvents] = useState<EventItem[]>([]);
-  // const [location, setLocation] = useState(defaultCenter);
   const [isAppLoading, setIsAppLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -41,7 +29,6 @@ function App() {
   const initializeApp = async () => {
     try {
       setIsAppLoading(true);
-      setError(null);
 
       const latitude = searchParams.get("lat");
       const longitude = searchParams.get("lng");
@@ -57,17 +44,15 @@ function App() {
         }));
       } else {
         console.log("📍 Використовую локацію із урл...");
-        const test1 = Number(latitude);
-        const test2 = Number(longitude);
         setFilters((prev) => ({
           ...prev,
-          lat: test1,
-          lng: test2,
+          lat: Number(latitude),
+          lng: Number(longitude),
         }));
       }
     } catch (err) {
       console.error("❌ Помилка ініціалізації:", err);
-      setError(err.message);
+
       setFilters((prev) => ({
         ...prev,
         lat: defaultCenter.lat,
@@ -92,13 +77,14 @@ function App() {
   });
 
   const contextFilters = useContext(FiltersContext);
+  const { fetchEvents, filteredEvents, loading } = useEvents();
 
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (Object.keys(filters).length) {
         contextFilters.updateValue(filters);
-        fetchEvents()
-      };
+        fetchEvents(filters);
+      }
     }, 300);
     return () => clearTimeout(timeout);
   }, [filters]);
@@ -110,26 +96,18 @@ function App() {
     };
   }, [filters.lat, filters.lng]);
 
-  const fetchEvents = async () => {
-    console.log("Fetching events start");
-    const response = await executeQuery(() => eventService.getEvents(filters));
-    if (response && response.data) {
-      setEvents(response.data);
-    }
-  };
-
   const handleChangeFilters = (newFilters: typeof filters) => {
     setFilters((prev) => ({ ...prev, ...newFilters }));
   };
 
   return (
-    <>
+    <div className="flex flex-col h-screen">
       <Header
         loading={isAppLoading}
         filters={filters}
         onChangeFilters={handleChangeFilters}
       />
-      <div className="flex h-screen bg-gray-200 font-roboto">
+      <div className="flex bg-gray-200 font-roboto h-[calc(100vh-65px)]">
         <div className="flex">
           <div className="hidden fixed inset-0 z-20 transition-opacity bg-black opacity-50 lg:hidden"></div>
           <div
@@ -138,9 +116,9 @@ function App() {
           >
             {!isAppLoading && (
               <EventList
-                loading={isLoadingEvents}
-                isSuccess={isSuccess}
-                events={events}
+                loading={loading}
+                isSuccess={true}
+                events={filteredEvents}
               />
             )}
           </div>
@@ -149,7 +127,7 @@ function App() {
           <main className="flex flex-col flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 relative">
             {!isAppLoading && (
               <Map
-                events={events}
+                events={filteredEvents}
                 center={mapCenter}
                 radius={filters.radius}
                 // onMove={(newCenter, newZoom) =>
@@ -165,7 +143,7 @@ function App() {
           </main>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 

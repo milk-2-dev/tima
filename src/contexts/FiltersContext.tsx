@@ -7,7 +7,6 @@ export function FiltersProvider({ children }) {
   const [value, setValue] = useState({});
 
   const updateValue = (newValue) => {
-    console.log('Updating filters to:', newValue);
     setValue(newValue);
   };
 

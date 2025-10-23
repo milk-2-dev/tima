@@ -15,9 +15,9 @@ export const eventService = {
       query = query.eq("type", filters.eventTypeId);
     }
 
-    query.range(0, 9);
+    query.limit(20);
 
-    const { data, error } = await query.order("created_at", {
+    const { data, error } = await query.order("date", {
       ascending: false,
     });
 
