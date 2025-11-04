@@ -71,8 +71,8 @@ function Header({ filters, onChangeFilters, loading }: Props) {
   }, [filters.eventCategoryId]);
 
   useEffect(() => {
-    setSelectedDate(new Date(filters.date));
-  }, [filters.date]);
+    setSelectedDate(new Date(filters.start));
+  }, [filters.start]);
 
   const handleLocationChange = (locationDetails: MapboxFeature) => {
     const { longitude, latitude } = locationDetails.properties.coordinates;
@@ -102,10 +102,10 @@ function Header({ filters, onChangeFilters, loading }: Props) {
     setSelectedDate(date);
     const isoDate = date.toISOString().split("T")[0];
 
-    if (isoDate !== filters.date) {
+    if (isoDate !== filters.start) {
       const newFilters = {
         ...filters,
-        date: isoDate,
+        start: isoDate,
       };
 
       onChangeFilters(newFilters);
