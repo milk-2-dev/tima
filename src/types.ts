@@ -46,6 +46,7 @@ export type EventWithRelations = Expand<
     adress: EventAdress;
     category: Pick<EventCategory, "description" | "id" | "title">;
     type: Omit<EventType, "created_at">;
+    location: Location;
   }
 >;
 

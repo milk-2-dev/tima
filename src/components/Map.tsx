@@ -1,9 +1,15 @@
 import { useEffect, useRef, useState } from "react";
+
+import type { Ref } from "react";
+import type { Map } from "mapbox-gl";
+
 import mapboxgl from "mapbox-gl";
-import type { Map, Marker } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
-import type { Coordinates, EventItem } from "@/types";
+import MapMarker from "./MapMarker";
+import MapPopup from "./MapPopup";
+
+import type { Coordinates, EventItem, EventTypeId } from "@/types";
 
 type Props = {
   events: EventItem[];
@@ -12,38 +18,11 @@ type Props = {
   onMove: (newCenter: Coordinates, newZoom: number) => void;
 };
 
-const EventsMap = ({ events, center, radius, onMove }: Props) => {
+const EventsMap = ({ events, center, radius }: Props) => {
   const mapRef = useRef<Map | null>(null);
-  const mapContainerRef = useRef(null);
-  const marker = useRef<Marker | null>(null);
-  const markersRef = useRef<Marker[]>([]);
-  const [mapInitialized, setMapInitialized] = useState(false);
-
-  const initMap = (center: Coordinates) => {
-    if (mapRef.current !== null) return;
-
-    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
-
-    const zoom = 10;
-
-    mapRef.current = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      center,
-      zoom: zoom,
-    });
-
-    if (marker.current) {
-      marker.current.remove();
-    }
-
-    marker.current = new mapboxgl.Marker({ color: "red" })
-      .setLngLat(center)
-      .addTo(mapRef.current);
-
-    mapRef.current.on("load", () => {
-      setMapInitialized(true);
-    });
-  };
+  const mapContainerRef = useRef<Ref<HTMLDivElement> | undefined>(undefined);
+  const [activeFeature, setActiveFeature] = useState<EventItem | undefined>();
+  const activeFeatureId = useRef<EventTypeId | null>(null);
 
   // const flyToLocation = (center: Coordinates) => {
   //   if (mapRef.current === null) return;
@@ -60,107 +39,118 @@ const EventsMap = ({ events, center, radius, onMove }: Props) => {
   // };
 
   const updateMarkers = () => {
-    const map = mapRef.current;
-    if (!map) return;
-
-    // очищаємо старі маркери
-    markersRef.current.forEach((m) => m.remove());
-    markersRef.current = [];
-
-    if (events.length === 0) return;
+    if (events.length === 0) {
+      fitMapToRadius();
+      return;
+    }
 
     const bounds = new mapboxgl.LngLatBounds();
 
-    // створюємо маркери
     events.forEach((event) => {
-      const [lng, lat] = event.location.coordinates;
+      const [lng, lat] = event.location?.coordinates;
 
-      const marker = new mapboxgl.Marker({ color: "#d669d8" })
-        .setLngLat([lng, lat])
-        .setPopup(
-          new mapboxgl.Popup({ offset: 25 }).setHTML(`
-            <div class="p-2 text-sm">
-              <strong>${event.title}</strong><br/>
-              <span>📍 ${lat.toFixed(3)}, ${lng.toFixed(3)}</span>
-            </div>
-          `)
-        )
-        .addTo(map);
-
-      markersRef.current.push(marker);
       bounds.extend([lng, lat]);
     });
 
     bounds.extend([center.lng, center.lat]);
 
-    // fit до всіх точок
-    // if (events.length > 1) {
-      map.fitBounds(bounds, { padding: 80, animate: true, maxZoom: 14 });
-    // } else {
-    //   const [lng, lat] = events[0].location.coordinates;
-    //   map.flyTo({ center: [lng, lat], zoom: 10 });
-    // }
+    mapRef.current?.fitBounds(bounds, {
+      padding: 80,
+      animate: true,
+      maxZoom: 14,
+    });
   };
 
-  function fitMapToRadius(
-    map: mapboxgl.Map,
-    lat: number,
-    lng: number,
-    radiusKm: number
-  ) {
+  function fitMapToRadius() {
+    const { lat, lng } = center;
     const R = 6371; // радіус Землі
-    const dLat = (radiusKm / R) * (180 / Math.PI);
+    const dLat = (radius / R) * (180 / Math.PI);
     const dLng =
-      (radiusKm / (R * Math.cos((Math.PI * lat) / 180))) * (180 / Math.PI);
+      (radius / (R * Math.cos((Math.PI * lat) / 180))) * (180 / Math.PI);
 
     const southWest = [lng - dLng, lat - dLat];
     const northEast = [lng + dLng, lat + dLat];
 
     const bounds = new mapboxgl.LngLatBounds(southWest, northEast);
-    map.fitBounds(bounds, { padding: 60, animate: true });
+    mapRef.current?.fitBounds(bounds, { padding: 60, animate: true });
   }
 
   useEffect(() => {
-    if (!mapInitialized) {
-      return initMap(center);
-    }
-  }, [center]);
-
-  useEffect(() => {
-    if (mapInitialized) {
+    if (mapRef.current) {
       updateMarkers();
     }
-  }, [events, mapInitialized]);
-
-  // 4️⃣ Fallback: якщо подій немає, фокусуємось на центрі або радіусі
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-
-    if (events.length === 0) {
-      fitMapToRadius(map, center.lat, center.lng, radius);
-    }
-  }, [center, events]);
+  }, [events]);
 
   useEffect(() => {
+    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+    mapRef.current = new mapboxgl.Map({
+      container: mapContainerRef.current,
+      center,
+      minZoom: 5.5,
+      zoom: 10,
+    });
+
+    mapRef.current.on("load", () => {
+      console.log("Map loaded");
+    });
+
+    mapRef.current.on("moveend", () => {
+      console.log("Map moveend");
+    });
+
+    mapRef.current.on("click", () => {
+      //Remove opened popup on map click
+      if (activeFeatureId.current) {
+        setActiveFeature(undefined);
+        activeFeatureId.current = null;
+      }
+    });
+
     return () => {
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
       }
-      if (marker.current) {
-        marker.current.remove();
-        marker.current = null;
-      }
     };
   }, []);
+
+  const handleMarkerClick = (feature: EventItem) => {
+    setActiveFeature(feature);
+    activeFeatureId.current = feature.id;
+  };
 
   return (
     <div
       id="map-container"
       ref={mapContainerRef}
       className="absolute top-0 left-0 w-full h-full"
-    />
+    >
+      {mapRef.current &&
+        center &&
+        events.map((feature) => {
+          return (
+            <MapMarker
+              key={feature.id}
+              map={mapRef.current}
+              feature={feature}
+              isActive={activeFeature?.id === feature.id}
+              onClick={handleMarkerClick}
+            />
+          );
+        })}
+      {mapRef.current && center && (
+        <MapMarker
+          key="center-marker"
+          map={mapRef.current}
+          isCenterMarker={true}
+          feature={{ location: { coordinates: [center.lng, center.lat] } }}
+          onClick={handleMarkerClick}
+        />
+      )}
+      {mapRef.current && (
+        <MapPopup map={mapRef.current} activeFeature={activeFeature} />
+      )}
+    </div>
   );
 };
 
