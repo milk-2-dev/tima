@@ -134,17 +134,21 @@ function LocationFilter({ placeType, location, onLocationChange }: Props) {
       const data = await response.json();
 
       if (data.features && data.features.length > 0) {
+        let text = "";
+
         let featureData = data.features.find((feature: MapboxFeature) =>
           feature.place_type.includes(placeType)
         );
 
         if (!featureData) {
           featureData = data.features.find((feature: MapboxFeature) =>
-            feature.place_type.includes("locality")
+            feature.place_type.includes("postcode")
           );
-        }
 
-        const text = featureData.text || data.features[0].text;
+          text = featureData.place_name;
+        } else {
+          text = featureData.text;
+        }
 
         const newObj = { ...selectedSugestion, name_preferred: text };
 
