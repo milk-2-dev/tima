@@ -1,7 +1,7 @@
 import type { Database } from "@/types/supabase";
 
 type EventRow = Database["public"]["Tables"]["events"]["Row"];
-type EventCategory = Database["public"]["Tables"]["event_categories"]["Row"];
+export type EventCategory = Database["public"]["Tables"]["event_categories"]["Row"];
 type EventType = Database["public"]["Tables"]["event_types"]["Row"];
 
 // type CleanEventBase = Omit<
