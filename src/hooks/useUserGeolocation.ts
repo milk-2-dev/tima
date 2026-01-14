@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import type { Coordinates } from "@/types";
+import type { Coordinates } from "@/types/app.types";
 
 export const useUserGeolocation = (options = {}) => {
   const [location, setLocation] = useState({

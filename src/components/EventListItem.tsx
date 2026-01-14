@@ -4,7 +4,7 @@ import { useUserGeolocation } from "@/hooks/useUserGeolocation";
 
 import { ItemContent, ItemTitle } from "@/components/ui/item";
 
-import type { EventItem } from "@/types";
+import type { EventItem } from "@/types/app.types";
 import { getDistanceKm } from "@/lib/utils";
 
 function EventsListItem({ itemData }: { itemData: EventItem }) {

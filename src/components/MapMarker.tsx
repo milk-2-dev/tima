@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
 
 import type { Map, Marker } from "mapbox-gl";
-import type { EventItem } from "@/types";
+import type { EventItem } from "@/types/app.types";
 
 import { createPortal } from "react-dom";
 import { House } from "lucide-react";

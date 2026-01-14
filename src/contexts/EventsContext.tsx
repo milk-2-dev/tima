@@ -7,7 +7,7 @@ import {
 } from "react";
 import { useSupabaseQuery } from "@/hooks/useSupabaseQuery";
 import { eventService } from "@/api/services/eventService";
-import type { EventItem, Filters } from "@/types";
+import type { EventItem, Filters } from "@/types/app.types";
 
 type EventsContextType = {
   events: EventItem[];

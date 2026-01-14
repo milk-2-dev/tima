@@ -6,7 +6,7 @@ import { useUserGeolocation } from "@/hooks/useUserGeolocation";
 import { Item, ItemContent, ItemTitle } from "@/components/ui/item";
 import { Skeleton } from "@/components/ui/skeleton";
 
-import type { EventItem } from "@/types";
+import type { EventItem } from "@/types/app.types";
 import { getDistanceKm } from "@/lib/utils";
 
 type Props = {

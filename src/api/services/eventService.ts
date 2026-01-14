@@ -1,4 +1,4 @@
-import type { EventWithRelations, Filters } from "@/types";
+import type { EventWithRelations, Filters } from "@/types/app.types";
 import { supabase } from "../apiClient";
 import { getDistanceKm } from "@/lib/utils";
 

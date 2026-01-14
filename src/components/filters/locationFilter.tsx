@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import type { MapboxFeature } from "@/types";
+import type { MapboxFeature } from "@/types/app.types";
 
 import { generateSessionToken } from "@/lib/utils";
 
@@ -35,7 +35,7 @@ type Suggestion = {
   maki: string;
 };
 
-import type { PlaceType, Coordinates } from "@/types";
+import type { PlaceType, Coordinates } from "@/types/app.types";
 
 type Props = {
   placeType: PlaceType;

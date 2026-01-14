@@ -8,7 +8,7 @@ import Header from "@/components/Header";
 import EventList from "@/components/EventsList";
 import Map from "@/components/Map";
 
-import type { Filters, Coordinates } from "@/types";
+import type { Filters, Coordinates } from "@/types/app.types";
 
 import { FiltersContext } from "@/contexts/FiltersContext";
 import { useEvents } from "@/contexts/EventsContext";

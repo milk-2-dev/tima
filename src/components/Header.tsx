@@ -30,7 +30,7 @@ import { Input } from "@/components/ui/input";
 import LocationFilter from "./filters/locationFilter";
 import DateFilter from "./filters/dateFilter";
 
-import type { Filters, MapboxFeature, EventCategory } from "@/types";
+import type { Filters, MapboxFeature, EventCategory } from "@/types/app.types";
 
 type Props = {
   filters: Filters;

@@ -9,7 +9,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import MapMarker from "./MapMarker";
 import MapPopup from "./MapPopup";
 
-import type { Coordinates, EventItem, EventTypeId } from "@/types";
+import type { Coordinates, EventItem, EventTypeId } from "@/types/app.types";
 
 type Props = {
   events: EventItem[];
