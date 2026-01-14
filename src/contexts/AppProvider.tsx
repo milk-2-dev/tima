@@ -1,12 +1,7 @@
 import { FiltersProvider } from "./FiltersContext";
-import { EventsProvider } from "./EventsContext";
 
 export function AppProvider({ children }) {
-  return (
-    <FiltersProvider>
-      <EventsProvider>{children}</EventsProvider>
-    </FiltersProvider>
-  );
+  return <FiltersProvider>{children}</FiltersProvider>;
 }
 
 {

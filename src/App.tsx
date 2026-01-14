@@ -1,7 +1,10 @@
 import { useState, useEffect, useMemo, useContext, useCallback } from "react";
 import { useSearchParams } from "react-router";
+
 import { useUserGeolocation } from "@/hooks/useUserGeolocation";
 import { useQuerySync } from "@/hooks/useQuerySync";
+import { useEvents } from '@/hooks/useEvents';
+
 import "./App.css";
 
 import Header from "@/components/Header";
@@ -11,7 +14,7 @@ import Map from "@/components/Map";
 import type { Filters, Coordinates } from "@/types/app.types";
 
 import { FiltersContext } from "@/contexts/FiltersContext";
-import { useEvents } from "@/contexts/EventsContext";
+
 
 const defaultCenter: Coordinates = { lat: 52.517037, lng: 13.38886 }; // Default to Berlin
 const defaultPlaceType = "locality";
@@ -25,6 +28,8 @@ function App() {
   const today = new Date().toISOString().slice(0, 10);
 
   const [filters, setFilters] = useState({} as Filters);
+
+  const { events, isLoading, hasMore, loadMore } = useEvents(filters);
 
   const initializeApp = useCallback(async () => {
     try {
@@ -77,13 +82,11 @@ function App() {
   });
 
   const contextFilters = useContext(FiltersContext);
-  const { fetchEvents, filteredEvents, loading } = useEvents();
 
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (Object.keys(filters).length) {
         contextFilters.updateValue(filters);
-        fetchEvents(filters);
       }
     }, 300);
     return () => clearTimeout(timeout);
@@ -116,9 +119,9 @@ function App() {
           >
             {!isAppLoading && (
               <EventList
-                loading={loading}
+                loading={isLoading}
                 isSuccess={true}
-                events={filteredEvents}
+                events={events}
               />
             )}
           </div>
@@ -127,7 +130,7 @@ function App() {
           <main className="flex flex-col flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 relative">
             {!isAppLoading && (
               <Map
-                events={filteredEvents}
+                events={events}
                 center={mapCenter}
                 radius={filters.radius}
                 // onMove={(newCenter, newZoom) =>
