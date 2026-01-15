@@ -124,6 +124,8 @@ function LocationFilter({ placeType, location, onLocationChange }: Props) {
     lat,
     lng,
   }) => {
+    if (!lat || !lng) return;
+
     try {
       const response = await fetch(
         `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?` +

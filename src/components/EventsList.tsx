@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { MapPin, UserRoundCheck, Timer } from "lucide-react";
 import { useInView } from "react-intersection-observer";
 
-import { useUserGeolocation } from "@/hooks/useUserGeolocation";
+import { useFiltersStore } from "@/stores/filtersStore";
 
 import { Item, ItemContent, ItemTitle } from "@/components/ui/item";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -61,7 +61,7 @@ function EventsList({ events, loading, hasMore, loadMore }: Props) {
 }
 
 function EventsListItem({ itemData }: { itemData: EventItem }) {
-  const { coords } = useUserGeolocation();
+  const { lat: filtersLat, lng: filtersLng } = useFiltersStore();
 
   const startDateString: string = itemData.start_datetime.split("T")[0];
   const startTimeString: string = itemData.start_datetime
@@ -78,8 +78,8 @@ function EventsListItem({ itemData }: { itemData: EventItem }) {
 
   let distance = null;
 
-  if (coords) {
-    const km = getDistanceKm(coords.lat, coords.lng, lat, lng);
+  if (filtersLat && filtersLng) {
+    const km = getDistanceKm(filtersLat, filtersLng, lat, lng);
     distance = Math.ceil(km * 10) / 10;
   }
 
