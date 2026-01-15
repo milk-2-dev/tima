@@ -1,5 +1,6 @@
-import { useMemo } from "react";
+import { useEffect } from "react";
 import { MapPin, UserRoundCheck, Timer } from "lucide-react";
+import { useInView } from "react-intersection-observer";
 
 import { useUserGeolocation } from "@/hooks/useUserGeolocation";
 
@@ -11,7 +12,8 @@ import { getDistanceKm } from "@/lib/utils";
 
 type Props = {
   loading: boolean;
-  isSuccess: boolean;
+  hasMore: boolean;
+  loadMore: () => void;
   events: EventItem[];
 };
 
@@ -27,44 +29,31 @@ export function SkeletonDemo() {
   );
 }
 
-function EventsList({ loading, isSuccess, events }: Props) {
-  const groupByDateEvents = useMemo(() => {
-    if (!events || events.length === 0) return [];
+function EventsList({ events, loading, hasMore, loadMore }: Props) {
+  const { ref, inView } = useInView();
 
-    return events.reduce((acc, event) => {
-      const dateKey: string = event.start_datetime.split("T")[0]; // "2025-10-21"
-
-      if (!acc[dateKey]) acc[dateKey] = [];
-      acc[dateKey].push(event);
-      return acc;
-    }, {} as { [key: string]: EventItem[] });
-  }, [events]);
+  useEffect(() => {
+    if (inView && hasMore && !loading) {
+      loadMore();
+    }
+  }, [inView, hasMore, loading, loadMore]);
 
   return (
     <div className="flex w-full max-w-md flex-col gap-4">
       <div className="flex flex-col">
-        {loading ? (
-          <>
+        {events.length > 0 &&
+          events.map((item: EventItem) => {
+            return <EventsListItem key={item.id} itemData={item} />;
+          })}
+
+        {!loading && events.length === 0 && <EventsListIsEmpty />}
+
+        {hasMore && (
+          <div ref={ref}>
             <SkeletonDemo />
             <div className="my-4" />
             <SkeletonDemo />
-          </>
-        ) : isSuccess && Object.entries(groupByDateEvents).length > 0 ? (
-          Object.entries(groupByDateEvents).map(([date, events]) => (
-            <div key={date} className="">
-              <div className="text-white py-4 sticky top-0 shadow-sm z-10">
-                <h4 className="text-sm text-center text-primary leading-none font-medium">
-                  {date}
-                </h4>
-              </div>
-              {events.length > 0 &&
-                events.map((item: EventItem) => {
-                  return <EventsListItem key={item.id} itemData={item} />;
-                })}
-            </div>
-          ))
-        ) : (
-          <EventsListIsEmpty />
+          </div>
         )}
       </div>
     </div>

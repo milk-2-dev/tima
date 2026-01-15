@@ -120,7 +120,8 @@ function App() {
             {!isAppLoading && (
               <EventList
                 loading={isLoading}
-                isSuccess={true}
+                hasMore={hasMore}
+                loadMore={loadMore}
                 events={events}
               />
             )}
