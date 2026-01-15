@@ -1,7 +1,7 @@
-import { FiltersProvider } from "./FiltersContext";
+// import { FiltersProvider } from "./FiltersContext";
 
 export function AppProvider({ children }) {
-  return <FiltersProvider>{children}</FiltersProvider>;
+  return children;
 }
 
 {
