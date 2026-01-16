@@ -1,16 +1,10 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
-import type { Coordinates } from "@/types/app.types";
+import type { Coordinates, Filters, PlaceType } from "@/types/app.types";
 
-export interface FiltersState {
+interface FiltersState extends Filters {
   // State
-  lat: number;
-  lng: number;
-  placeType: string;
-  radius: number; // в км
-  eventCategoryId: string | null;
-  startDate: string | null; // ISO string
 
   // Geolocation state
   isLoadingLocation: boolean;
@@ -18,10 +12,11 @@ export interface FiltersState {
   hasAskedForLocation: boolean;
 
   // Actions
-  setLocation: (location: LocationCoords | null) => void;
+  setLocation: (location: Coordinates) => void;
+  setPlaceType: (placeType: PlaceType) => void;
   setRadius: (radius: number) => void;
-  setCategory: (category: string | null) => void;
-  setStartDate: (date: string | null) => void;
+  setCategory: (category: string) => void;
+  setStartDate: (date: string) => void;
 
   // Geolocation actions
   setLoadingLocation: (loading: boolean) => void;

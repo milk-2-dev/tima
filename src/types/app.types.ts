@@ -52,20 +52,19 @@ export type EventWithRelations = Expand<
 
 export type Latitude = number;
 export type Longitude = number;
-
 export type Coordinates = { lng: Longitude; lat: Latitude };
 export type Location = { type: string; coordinates: [Longitude, Latitude] };
 export type Date = string; // ISO 8601 format: YYYY-MM-DD
 export type PlaceType = "postcode" | "locality" | "district" | "region";
 
 export interface Filters {
-  lng: Longitude;
-  lat: Latitude;
+  lng: Longitude | null;
+  lat: Latitude | null;
   placeType: PlaceType;
   radius: number; // in kilometers
   eventTypeId: EventTypeId;
   eventCategoryId: EventCategoryId;
-  start: Date;
+  startDate: Date;
 }
 
 export interface MapboxFeature {
