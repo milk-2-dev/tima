@@ -32,8 +32,6 @@ export function useEvents(filters?: FetchEventsParams) {
         page: 0,
       });
 
-      console.log('Fetched events: ', response);
-
       setEvents(response.events);
       setPagination(0, response.hasMore, response.total);
     } catch (err) {

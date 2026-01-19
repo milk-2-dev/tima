@@ -39,8 +39,6 @@ function App() {
     [lat, lng, placeType, radius, eventCategoryId, startDate]
   );
 
-  console.log(filters);
-
   const { events, isLoading, hasMore, loadMore } = useEvents(filters);
 
   const mapCenter = useMemo(() => {

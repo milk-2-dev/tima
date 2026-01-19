@@ -95,7 +95,7 @@ const EventsMap = ({ events, center, radius }: Props) => {
     });
 
     mapRef.current.on("moveend", () => {
-      console.log("Map moveend");
+      console.log("Map move end");
     });
 
     mapRef.current.on("click", () => {
