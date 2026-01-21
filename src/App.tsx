@@ -9,6 +9,7 @@ import "./App.css";
 import Header from "@/components/Header";
 import EventList from "@/components/EventsList";
 import Map from "@/components/Map";
+import {EventsMap} from "@/components/EventsMap";
 
 function App() {
   const { setFilters } = useFiltersStore();
@@ -74,21 +75,7 @@ function App() {
         </div>
         <div className="flex-1 flex flex-col overflow-hidden">
           <main className="flex flex-col flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 relative">
-            {!isLoadingLocation && (
-              <Map
-                events={events}
-                center={mapCenter}
-                radius={filters.radius}
-                // onMove={(newCenter, newZoom) =>
-                // updateUrlParams({
-                //   lat: newCenter.lat,
-                //   lng: newCenter.lng,
-                //   zoom: newZoom,
-                // })
-                // }
-                onMove={(newCenter, newZoom) => {}}
-              />
-            )}
+            <EventsMap />
           </main>
         </div>
       </div>
