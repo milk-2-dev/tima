@@ -8,8 +8,7 @@ import "./App.css";
 
 import Header from "@/components/Header";
 import EventList from "@/components/EventsList";
-import Map from "@/components/Map";
-import {EventsMap} from "@/components/EventsMap";
+import { EventsMap } from "@/components/EventsMap";
 
 function App() {
   const { setFilters } = useFiltersStore();
