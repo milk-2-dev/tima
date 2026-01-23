@@ -41,13 +41,6 @@ function App() {
 
   const { events, isLoading, hasMore, loadMore } = useEvents(filters);
 
-  const mapCenter = useMemo(() => {
-    return {
-      lat: Number(lat),
-      lng: Number(lng),
-    };
-  }, [lat, lng]);
-
   return (
     <div className="flex flex-col h-screen">
       <Header

@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router";
 import { useFiltersStore } from "@/stores/filtersStore";
 import { geolocationService } from "@/services/geolocation";
@@ -27,8 +27,9 @@ export function useFiltersSync() {
     setHasAskedForLocation,
   } = useFiltersStore();
 
+  const hasMounted = useRef(false);
+
   // ========== URL → Store ==========
-  // Читаємо з URL при mount і оновлюємо store
   useEffect(() => {
     const urlFilters: any = {};
 
@@ -65,15 +66,23 @@ export function useFiltersSync() {
       urlFilters.startDate = urlStartDate;
     }
 
-    // Оновлюємо store якщо є фільтри в URL
     if (Object.keys(urlFilters).length > 0) {
       setFilters(urlFilters);
     }
-  }, []); // тільки при mount
+    
+    return () => {
+      hasMounted.current = false;
+    };
+  }, []);
 
   // ========== Store → URL ==========
-  // Синхронізуємо зміни в store з URL
   useEffect(() => {
+    //only after initial mount
+    if (!hasMounted.current) {
+      hasMounted.current = true;
+      return;
+    };
+    
     const params = new URLSearchParams();
 
     if (lat && lng) {
@@ -99,8 +108,11 @@ export function useFiltersSync() {
       params.set("startDate", startDate);
     }
 
-    // Оновлюємо URL без перезавантаження сторінки
     setSearchParams(params, { replace: true });
+
+    return () => {
+      hasMounted.current = false;
+    };
   }, [lat, lng, radius, eventCategoryId, startDate, setSearchParams]);
 
   // ========== Geolocation Request ==========
@@ -136,7 +148,6 @@ export function useFiltersSync() {
       console.error("Geolocation error:", error);
       setLocationError(error.message || "Failed to get location");
       setDefaultLocation();
-      // Не блокуємо додаток, користувач може вручну вибрати локацію
     } finally {
       setLoadingLocation(false);
     }

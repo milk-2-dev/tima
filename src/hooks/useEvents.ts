@@ -1,7 +1,7 @@
-import { useCallback, useEffect } from 'react';
-import { useEventsStore } from '@/stores/eventsStore';
-import { eventsService } from '@/services/supabase/eventsService';
-import type { FetchEventsParams } from '@/services/supabase/eventsService';
+import { useCallback, useEffect, useRef } from "react";
+import { useEventsStore } from "@/stores/eventsStore";
+import { eventsService } from "@/services/supabase/eventsService";
+import type { FetchEventsParams } from "@/services/supabase/eventsService";
 
 export function useEvents(filters?: FetchEventsParams) {
   const {
@@ -19,29 +19,55 @@ export function useEvents(filters?: FetchEventsParams) {
     reset,
   } = useEventsStore();
 
-  // Завантаження першої сторінки
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const cancelPreviousRequest = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+  }, []);
+
   const fetchEvents = useCallback(async () => {
-    if (filters && Object.keys(filters).length === 0) return;
+    console.log(filters)
+    if (
+      filters &&
+      Object.keys(filters).length === 0 &&
+      filters.lng &&
+      filters.lat
+    )
+      return;
+
+    // Canceling previous request
+    cancelPreviousRequest();
 
     try {
       setLoading(true);
       setError(null);
 
+      abortControllerRef.current = new AbortController();
+
       const response = await eventsService.fetchEvents({
         ...filters,
         page: 0,
+        signal: abortControllerRef.current.signal,
       });
 
       setEvents(response.events);
       setPagination(0, response.hasMore, response.total);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch events');
+      if (err instanceof DOMException && err.name === "AbortError") {
+        console.log("Request was cancelled");
+        return;
+      }
+
+      setError(err instanceof Error ? err.message : "Failed to fetch events");
     } finally {
       setLoading(false);
+      abortControllerRef.current = null;
     }
   }, [filters, setEvents, setLoading, setError, setPagination]);
 
-  // Завантаження наступної сторінки (infinite scroll)
   const loadMore = useCallback(async () => {
     if (!hasMore || isLoading) return;
 
@@ -57,11 +83,22 @@ export function useEvents(filters?: FetchEventsParams) {
       appendEvents(response.events);
       setPagination(nextPage, response.hasMore, response.total);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load more events');
+      setError(
+        err instanceof Error ? err.message : "Failed to load more events"
+      );
     } finally {
       setLoading(false);
     }
-  }, [filters, page, hasMore, isLoading, appendEvents, setLoading, setError, setPagination]);
+  }, [
+    filters,
+    page,
+    hasMore,
+    isLoading,
+    appendEvents,
+    setLoading,
+    setError,
+    setPagination,
+  ]);
 
   // Рефреш (перезавантаження з початку)
   const refresh = useCallback(() => {
@@ -87,7 +124,8 @@ export function useEvents(filters?: FetchEventsParams) {
 
 // Окремий хук для одного івенту
 export function useEvent(id: string) {
-  const { selectedEvent, setSelectedEvent, setLoading, setError } = useEventsStore();
+  const { selectedEvent, setSelectedEvent, setLoading, setError } =
+    useEventsStore();
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -96,7 +134,7 @@ export function useEvent(id: string) {
         const event = await eventsService.fetchEventById(id);
         setSelectedEvent(event);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch event');
+        setError(err instanceof Error ? err.message : "Failed to fetch event");
       } finally {
         setLoading(false);
       }
