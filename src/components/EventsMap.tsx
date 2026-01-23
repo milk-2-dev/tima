@@ -1,14 +1,34 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import Supercluster from "supercluster";
 
 import { useEventsStore } from "@/stores/eventsStore";
 import { useFiltersStore } from "@/stores/filtersStore";
 
+import { type EventItem } from "@/types/app.types";
+
+import ClusterMarker from "./ClusterMarker";
 import MapMarker from "./MapMarker";
 import MapPopup from "./MapPopup";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+
+type EventProperties = {
+  cluster: false;
+  event: EventItem;
+};
+
+type ClusterProperties = {
+  cluster: true;
+  cluster_id: number;
+  point_count: number;
+  point_count_abbreviated: string;
+};
+
+type EventFeature = GeoJSON.Feature<GeoJSON.Point, EventProperties>;
+type ClusterFeature = GeoJSON.Feature<GeoJSON.Point, ClusterProperties>;
+type MapFeature = EventFeature | ClusterFeature;
 
 export function EventsMap() {
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -20,6 +40,41 @@ export function EventsMap() {
 
   const { lng, lat, radius } = useFiltersStore();
 
+  const [mapBounds, setMapBounds] = useState<
+    [number, number, number, number] | null
+  >(null);
+  const [mapZoom, setMapZoom] = useState(10);
+
+  // ========== Creating Supercluster ==========
+  const cluster = useMemo(() => {
+    const supercluster = new Supercluster<EventProperties>({
+      radius: 100, // clustering radius
+      maxZoom: 16, // clusterisation max zoom
+      minZoom: 0,
+    });
+
+    // Конвертуємо events в GeoJSON features
+    const points: EventFeature[] = events
+      .filter((event) => event.location?.coordinates)
+      .map((event) => ({
+        type: "Feature",
+        properties: {
+          cluster: false,
+          event: event,
+        },
+        geometry: { ...event.location },
+      }));
+
+    supercluster.load(points);
+    return supercluster;
+  }, [events]);
+
+  const clustersAndPoints = useMemo(() => {
+    if (!mapBounds || mapZoom === undefined) return [];
+
+    return cluster.getClusters(mapBounds, Math.floor(mapZoom)) as MapFeature[];
+  }, [cluster, mapBounds, mapZoom]);
+
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
@@ -27,7 +82,7 @@ export function EventsMap() {
       container: mapContainer.current,
       style: "mapbox://styles/mapbox/streets-v12",
       center: !lng || !lat ? [30.5234, 50.4501] : [lng, lat], // [30.5234, 50.4501], // Київ за замовчуванням
-      zoom: 12,
+      zoom: 10,
     });
 
     // Controls
@@ -40,19 +95,37 @@ export function EventsMap() {
       "top-right"
     );
 
+    // Оновлення bounds та zoom при русі карти
+    const updateMapView = () => {
+      if (!map.current) return;
+
+      const bounds = map.current.getBounds();
+      setMapBounds([
+        bounds.getWest(),
+        bounds.getSouth(),
+        bounds.getEast(),
+        bounds.getNorth(),
+      ]);
+      setMapZoom(map.current.getZoom());
+    };
+
     //Events
     map.current.on("load", () => {
       console.log("Map loaded");
+      updateMapView();
     });
 
     map.current.on("moveend", () => {
       console.log("Map move end");
+      updateMapView();
     });
+
+    map.current.on("zoomend", updateMapView);
 
     map.current.on("click", () => {
       const currentSelectedEvent = useEventsStore.getState().selectedEvent;
 
-      //Remove opened popup on map click
+      // Remove opened popup on map click
       if (currentSelectedEvent) {
         setSelectedEvent(null);
       }
@@ -72,51 +145,23 @@ export function EventsMap() {
 
     map.current.flyTo({
       center: [lng, lat],
-      zoom: 12,
+      zoom: 10,
       duration: 1000,
     });
   }, [lng, lat]);
 
-  useEffect(() => {
-    if (!map.current) return;
-    updateMarkers();
-  }, [events, selectedEvent]);
+  const handleClusterClick = (
+    clusterId: number,
+    coordinates: [number, number]
+  ) => {
+    const expansionZoom = cluster.getClusterExpansionZoom(clusterId);
 
-  const updateMarkers = () => {
-    if (events.length === 0) {
-      fitMapToRadius();
-      return;
-    }
-
-    const bounds = new mapboxgl.LngLatBounds();
-
-    events.forEach((event) => {
-      bounds.extend([...event.location.coordinates]);
-    });
-
-    if (lng && lat) {
-      bounds.extend([lng, lat]); // add current position from filters
-    }
-
-    map.current?.fitBounds(bounds, {
-      padding: 80,
-      animate: true,
-      maxZoom: 14,
+    map.current?.easeTo({
+      center: coordinates,
+      zoom: expansionZoom,
+      duration: 500,
     });
   };
-
-  function fitMapToRadius() {
-    const R = 6371; // радіус Землі
-    const dLat = (radius / R) * (180 / Math.PI);
-    const dLng =
-      (radius / (R * Math.cos((Math.PI * lat) / 180))) * (180 / Math.PI);
-
-    const southWest = [lng - dLng, lat - dLat];
-    const northEast = [lng + dLng, lat + dLat];
-
-    const bounds = new mapboxgl.LngLatBounds(southWest, northEast);
-    map.current?.fitBounds(bounds, { padding: 60, animate: true });
-  }
 
   return (
     <div
@@ -125,18 +170,43 @@ export function EventsMap() {
       className="absolute top-0 left-0 w-full h-full"
     >
       {map.current &&
-        events.length > 0 &&
-        events.map((feature) => {
-          return (
-            <MapMarker
-              key={feature.id}
-              map={map.current}
-              feature={feature}
-              isActive={selectedEvent?.id === feature.id}
-              onClick={setSelectedEvent}
-            />
-          );
+        clustersAndPoints.map((feature) => {
+          const [lng, lat] = feature.geometry.coordinates;
+
+          if (feature.properties.cluster) {
+            const clusterFeature = feature as ClusterFeature;
+
+            return (
+              <ClusterMarker
+                key={`cluster-${clusterFeature.properties.cluster_id}`}
+                map={map.current!}
+                coordinates={[lng, lat]}
+                pointCount={clusterFeature.properties.point_count}
+                onClick={() =>
+                  handleClusterClick(clusterFeature.properties.cluster_id, [
+                    lng,
+                    lat,
+                  ])
+                }
+              />
+            );
+          } else {
+            const eventFeature = feature as EventFeature;
+            const event = eventFeature.properties.event;
+
+            return (
+              <MapMarker
+                key={event.id}
+                map={map.current!}
+                isCenterMarker={false}
+                feature={event}
+                isActive={selectedEvent?.id === event.id}
+                onClick={setSelectedEvent}
+              />
+            );
+          }
         })}
+
       {map.current && (
         <MapMarker
           key="center-marker"
