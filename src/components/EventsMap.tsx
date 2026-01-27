@@ -38,7 +38,7 @@ export function EventsMap() {
   const selectedEvent = useEventsStore((state) => state.selectedEvent);
   const setSelectedEvent = useEventsStore((state) => state.setSelectedEvent);
 
-  const { lng, lat, radius } = useFiltersStore();
+  const { lng, lat } = useFiltersStore();
 
   const [mapBounds, setMapBounds] = useState<
     [number, number, number, number] | null
@@ -81,7 +81,7 @@ export function EventsMap() {
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: "mapbox://styles/mapbox/streets-v12",
-      center: !lng || !lat ? [30.5234, 50.4501] : [lng, lat], // [30.5234, 50.4501], // Київ за замовчуванням
+      center: !lng || !lat ? [30.5234, 50.4501] : [lng, lat],
       zoom: 10,
     });
 
@@ -207,7 +207,7 @@ export function EventsMap() {
           }
         })}
 
-      {map.current && (
+      {map.current && lng && lat && (
         <MapMarker
           key="center-marker"
           map={map.current}
