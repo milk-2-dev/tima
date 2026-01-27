@@ -4,7 +4,7 @@ import type { Popup } from "mapbox-gl";
 
 import { createPortal } from "react-dom";
 import mapboxgl from "mapbox-gl";
-import EventsListItem from "./EventListItem";
+import EventCard from "./EventCard";
 
 const MapPopup = ({ map, activeFeature }) => {
   // a ref to hold the popup instance
@@ -20,6 +20,7 @@ const MapPopup = ({ map, activeFeature }) => {
     popupRef.current = new mapboxgl.Popup({
       closeOnClick: false,
       offset: 20,
+      maxWidth: '380px',
     });
 
     return () => {
@@ -48,7 +49,7 @@ const MapPopup = ({ map, activeFeature }) => {
     <>
       {createPortal(
         <div className="portal-content">
-          {activeFeature && <EventsListItem itemData={activeFeature} />}
+          {activeFeature && <EventCard itemData={activeFeature} />}
         </div>,
         contentRef.current
       )}
