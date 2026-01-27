@@ -1,19 +1,20 @@
-import { create } from 'zustand';
-import { devtools } from 'zustand/middleware';
-import type { EventItem } from '@/types/app.types'; // винесіть типи окремо
+import { create } from "zustand";
+import { devtools } from "zustand/middleware";
+import type { EventItem } from "@/types/app.types"; // винесіть типи окремо
 
 interface EventsState {
   // State
   events: EventItem[];
   selectedEvent: EventItem | null;
+  hoveredEvent: EventItem | null;
   isLoading: boolean;
   error: string | null;
-  
+
   // Pagination
   page: number;
   hasMore: boolean;
   total: number;
-  
+
   // Actions
   setEvents: (events: EventItem[]) => void;
   appendEvents: (events: EventItem[]) => void; // для infinite scroll
@@ -21,6 +22,7 @@ interface EventsState {
   updateEvent: (id: string, updates: Partial<EventItem>) => void;
   deleteEvent: (id: string) => void;
   setSelectedEvent: (event: EventItem | null) => void;
+  setHoveredEvent: (event: EventItem | null) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   setPagination: (page: number, hasMore: boolean, total: number) => void;
@@ -31,6 +33,7 @@ interface EventsState {
 const initialState = {
   events: [],
   selectedEvent: null,
+  hoveredEvent: null,
   isLoading: false,
   error: null,
   page: 0,
@@ -43,8 +46,7 @@ export const useEventsStore = create<EventsState>()(
     (set) => ({
       ...initialState,
 
-      setEvents: (events) =>
-        set({ events, error: null }, false, 'setEvents'),
+      setEvents: (events) => set({ events, error: null }, false, "setEvents"),
 
       appendEvents: (newEvents) =>
         set(
@@ -52,17 +54,17 @@ export const useEventsStore = create<EventsState>()(
             events: [...state.events, ...newEvents],
           }),
           false,
-          'appendEvents'
+          "appendEvents"
         ),
 
       addEvent: (event) =>
         set(
-          (state) => ({ 
+          (state) => ({
             events: [event, ...state.events],
             total: state.total + 1,
           }),
           false,
-          'addEvent'
+          "addEvent"
         ),
 
       updateEvent: (id, updates) =>
@@ -77,7 +79,7 @@ export const useEventsStore = create<EventsState>()(
                 : state.selectedEvent,
           }),
           false,
-          'updateEvent'
+          "updateEvent"
         ),
 
       deleteEvent: (id) =>
@@ -89,27 +91,31 @@ export const useEventsStore = create<EventsState>()(
             total: state.total - 1,
           }),
           false,
-          'deleteEvent'
+          "deleteEvent"
         ),
 
       setSelectedEvent: (event) =>
-        set({ selectedEvent: event }, false, 'setSelectedEvent'),
+        set({ selectedEvent: event }, false, "setSelectedEvent"),
 
-      setLoading: (loading) =>
-        set({ isLoading: loading }, false, 'setLoading'),
+      setHoveredEvent: (event) =>
+        set({ hoveredEvent: event }, false, "setHoveredEvent"),
 
-      setError: (error) =>
-        set({ error }, false, 'setError'),
+      setLoading: (loading) => set({ isLoading: loading }, false, "setLoading"),
+
+      setError: (error) => set({ error }, false, "setError"),
 
       setPagination: (page, hasMore, total) =>
-        set({ page, hasMore, total }, false, 'setPagination'),
+        set({ page, hasMore, total }, false, "setPagination"),
 
       clearEvents: () =>
-        set({ events: [], selectedEvent: null, error: null }, false, 'clearEvents'),
+        set(
+          { events: [], selectedEvent: null, error: null },
+          false,
+          "clearEvents"
+        ),
 
-      reset: () =>
-        set(initialState, false, 'reset'),
+      reset: () => set(initialState, false, "reset"),
     }),
-    { name: 'EventsStore' }
+    { name: "EventsStore" }
   )
 );

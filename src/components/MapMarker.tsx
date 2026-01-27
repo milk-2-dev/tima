@@ -12,6 +12,7 @@ type Props = {
   feature: EventItem;
   isCenterMarker: boolean;
   isActive?: boolean;
+  isHovered?: boolean;
   onClick: (feature: EventItem) => void;
 };
 
@@ -20,6 +21,7 @@ const MapMarker = ({
   feature,
   isCenterMarker = false,
   isActive = false,
+  isHovered = false,
   onClick,
 }: Props) => {
   // a ref for the mapboxgl.Marker instance
@@ -38,7 +40,11 @@ const MapMarker = ({
     };
   }, []);
 
-  const markerClass = isActive ? "scale-110" : "";
+  const markerClass = isActive
+    ? "scale-110"
+    : isHovered
+    ? "animate-bounce"
+    : "";
 
   const handleClickOnMarker = (e: React.SyntheticEvent) => {
     e.stopPropagation();
@@ -50,7 +56,7 @@ const MapMarker = ({
       {createPortal(
         <div
           onClick={handleClickOnMarker}
-          className={`${markerClass} cursor-pointer ease-in-out hover:scale-110 transition-transform`}
+          className={`${markerClass} cursor-pointer ease-in-out hover:scale-110 transition-all duration-300`}
         >
           {isCenterMarker ? (
             <svg

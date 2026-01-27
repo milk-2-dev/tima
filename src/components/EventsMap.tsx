@@ -35,8 +35,7 @@ export function EventsMap() {
   const map = useRef<mapboxgl.Map | null>(null);
 
   const events = useEventsStore((state) => state.events);
-  const selectedEvent = useEventsStore((state) => state.selectedEvent);
-  const setSelectedEvent = useEventsStore((state) => state.setSelectedEvent);
+  const { selectedEvent, hoveredEvent, setSelectedEvent } = useEventsStore();
 
   const { lng, lat } = useFiltersStore();
 
@@ -201,6 +200,7 @@ export function EventsMap() {
                 isCenterMarker={false}
                 feature={event}
                 isActive={selectedEvent?.id === event.id}
+                isHovered={hoveredEvent?.id === event.id}
                 onClick={setSelectedEvent}
               />
             );

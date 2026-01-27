@@ -14,9 +14,11 @@ import { ItemContent, ItemTitle } from "@/components/ui/item";
 
 import type { EventItem } from "@/types/app.types";
 import { getDistanceKm } from "@/lib/utils";
+import { useEventsStore } from "@/stores/eventsStore";
 
 function EventCard({ itemData }: { itemData: EventItem }) {
   const { lat: filtersLat, lng: filtersLng } = useFiltersStore();
+  const { setHoveredEvent } = useEventsStore();
 
   const startDateString: string = format(
     new Date(itemData.start_datetime),
@@ -42,7 +44,11 @@ function EventCard({ itemData }: { itemData: EventItem }) {
   }
 
   return (
-    <div className="w-full">
+    <div
+      className="w-full"
+      onMouseEnter={() => setHoveredEvent(itemData)}
+      onMouseLeave={() => setHoveredEvent(null)}
+    >
       <div className="flex mb-2">
         <div className="w-full flex items-center gap-4">
           <ItemContent className="me-2">
