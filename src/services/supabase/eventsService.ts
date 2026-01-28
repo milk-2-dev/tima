@@ -136,18 +136,20 @@ export const eventsService = {
         .from("events")
         .select(
           `
-          *, 
-          organizer:profiles!organizer_id (id, username, avatar_url),
-          category:event_categories!event_category_id (id, title, description),
-          type:event_types!event_type_id (id, title, description),
-          participants:event_participants(
-            id, 
-            user:profiles!user_id (id, username, avatar_url)
-          )
+    id, title, description, start_datetime, end_datetime, location, min_players, max_players,
+    adress, venue_name,
+    category: event_categories!event_category_id (id, title, description),
+    type: event_types!event_type_id (id, title, description), 
+    participants:event_participants(count)
           `
         )
         .eq("id", id)
         .single();
+
+      // participants:event_participants(
+      //   id,
+      //   user:profiles!user_id (id, username, avatar_url)
+      // )
 
       if (signal?.aborted) {
         throw new DOMException("Request aborted", "AbortError");
@@ -158,10 +160,10 @@ export const eventsService = {
       return data
         ? {
             ...data,
-            organizer_id: data.organizer?.id,
-            organizer_name: data.organizer?.username,
-            organizer_avatar: data.organizer?.avatar_url,
-            current_players: data.participants?.length || 0,
+            // organizer_id: data.organizer?.id,
+            // organizer_name: data.organizer?.username,
+            // organizer_avatar: data.organizer?.avatar_url,
+            current_players: data.participants?.[0]?.count || 0,
           }
         : null;
     } catch (error) {

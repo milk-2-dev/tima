@@ -1,4 +1,5 @@
 import { format } from "date-fns";
+import { Link } from "react-router";
 
 import {
   MapPin,
@@ -67,7 +68,7 @@ function EventCard({ itemData }: { itemData: EventItem }) {
         <div className="w-full flex items-center gap-4">
           <ItemContent className="me-2">
             <ItemTitle className="font-semibold text-sm">
-              <a href="#">{itemData.title}</a>
+              <Link to={`/events/${itemData.id}`} id={`event-${itemData.id}`}>{itemData.title}</Link>
             </ItemTitle>
           </ItemContent>
         </div>

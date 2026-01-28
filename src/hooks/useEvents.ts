@@ -29,7 +29,6 @@ export function useEvents(filters?: FetchEventsParams) {
   }, []);
 
   const fetchEvents = useCallback(async () => {
-    console.log(filters)
     if (
       filters &&
       Object.keys(filters).length === 0 &&
@@ -100,13 +99,11 @@ export function useEvents(filters?: FetchEventsParams) {
     setPagination,
   ]);
 
-  // Рефреш (перезавантаження з початку)
   const refresh = useCallback(() => {
     reset();
     fetchEvents();
   }, [fetchEvents, reset]);
 
-  // Auto-fetch при зміні фільтрів
   useEffect(() => {
     fetchEvents();
   }, [fetchEvents]);
@@ -122,12 +119,15 @@ export function useEvents(filters?: FetchEventsParams) {
   };
 }
 
-// Окремий хук для одного івенту
 export function useEvent(id: string) {
   const { selectedEvent, setSelectedEvent, setLoading, setError } =
     useEventsStore();
 
   useEffect(() => {
+    if (selectedEvent?.id === id) {
+      return;
+    }
+
     const fetchEvent = async () => {
       try {
         setLoading(true);

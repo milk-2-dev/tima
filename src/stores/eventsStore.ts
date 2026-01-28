@@ -37,7 +37,7 @@ const initialState = {
   isLoading: false,
   error: null,
   page: 0,
-  hasMore: true,
+  hasMore: false,
   total: 0,
 };
 
