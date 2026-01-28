@@ -47,6 +47,9 @@ export type EventWithRelations = Expand<
     category: Pick<EventCategory, "description" | "id" | "title">;
     type: Omit<EventType, "created_at">;
     location: Location;
+    current_players?: number;
+    max_players?: number;
+    min_players?: number;
   }
 >;
 

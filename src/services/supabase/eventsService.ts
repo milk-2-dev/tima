@@ -44,7 +44,7 @@ export const eventsService = {
     id, title, description, start_datetime, end_datetime, location, min_players, max_players,
     adress, venue_name,
     category: event_categories!event_category_id (id, title, description),
-    type: event_types!event_type_id (id, title, description)`,
+    type: event_types!event_type_id (id, title, description), participants:event_participants(count)`,
           { count: "exact" }
         )
         .order("start_datetime", { ascending: false })
@@ -79,8 +79,14 @@ export const eventsService = {
 
       if (error) throw error;
 
+      const eventsWithParticipants =
+        data?.map((event: any) => ({
+          ...event,
+          current_players: event.participants?.[0]?.count || 0,
+        })) || [];
+
       const filteredEvents =
-        data?.filter((event) => {
+        eventsWithParticipants?.filter((event) => {
           const eventLng = event.location.coordinates[0];
           const eventLat = event.location.coordinates[1];
 
@@ -117,23 +123,53 @@ export const eventsService = {
   },
 
   // Fetch одного івенту
-  async fetchEventById(id: string): Promise<Event | null> {
-    const { data, error } = await supabase
-      .from("events")
-      .select("*, profiles(username, avatar_url), participants(count)")
-      .eq("id", id)
-      .single();
+  async fetchEventById(
+    id: string,
+    signal?: AbortSignal
+  ): Promise<Event | null> {
+    if (signal?.aborted) {
+      throw new DOMException("Request aborted", "AbortError");
+    }
 
-    if (error) throw error;
+    try {
+      const { data, error } = await supabase
+        .from("events")
+        .select(
+          `
+          *, 
+          organizer:profiles!organizer_id (id, username, avatar_url),
+          category:event_categories!event_category_id (id, title, description),
+          type:event_types!event_type_id (id, title, description),
+          participants:event_participants(
+            id, 
+            user:profiles!user_id (id, username, avatar_url)
+          )
+          `
+        )
+        .eq("id", id)
+        .single();
 
-    return data
-      ? {
-          ...data,
-          organizer_name: data.profiles?.username,
-          organizer_avatar: data.profiles?.avatar_url,
-          current_players: data.participants?.[0]?.count || 0,
-        }
-      : null;
+      if (signal?.aborted) {
+        throw new DOMException("Request aborted", "AbortError");
+      }
+
+      if (error) throw error;
+
+      return data
+        ? {
+            ...data,
+            organizer_id: data.organizer?.id,
+            organizer_name: data.organizer?.username,
+            organizer_avatar: data.organizer?.avatar_url,
+            current_players: data.participants?.length || 0,
+          }
+        : null;
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        //internal logging for aborted requests
+      }
+      throw error;
+    }
   },
 
   // Створення івенту

@@ -11,14 +11,20 @@ import {
 import { useFiltersStore } from "@/stores/filtersStore";
 
 import { ItemContent, ItemTitle } from "@/components/ui/item";
+import { AvailableSpots } from "@/components/events/AvailableSpots";
 
 import type { EventItem } from "@/types/app.types";
 import { getDistanceKm } from "@/lib/utils";
+
+import { isFull } from "@/helpers";
+
 import { useEventsStore } from "@/stores/eventsStore";
 
 function EventCard({ itemData }: { itemData: EventItem }) {
   const { lat: filtersLat, lng: filtersLng } = useFiltersStore();
   const { setHoveredEvent } = useEventsStore();
+
+  const full = isFull(itemData);
 
   const startDateString: string = format(
     new Date(itemData.start_datetime),
@@ -45,10 +51,18 @@ function EventCard({ itemData }: { itemData: EventItem }) {
 
   return (
     <div
-      className="w-full"
+      className={`w-full ${full ? "opacity-75" : ""}`}
       onMouseEnter={() => setHoveredEvent(itemData)}
       onMouseLeave={() => setHoveredEvent(null)}
     >
+      {full && (
+        <div className="absolute top-2 right-2 z-10">
+          <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+            ЗАПОВНЕНО
+          </span>
+        </div>
+      )}
+
       <div className="flex mb-2">
         <div className="w-full flex items-center gap-4">
           <ItemContent className="me-2">
@@ -89,8 +103,7 @@ function EventCard({ itemData }: { itemData: EventItem }) {
             <span className="text-sm ms-2">{itemData.type.title}</span>
           </div>
           <div className="flex items-center">
-            <UserRoundCheck size={16} className="text-muted-foreground" />
-            <span className="text-sm ms-2 shrink-0">7/10</span>
+            <AvailableSpots event={itemData} variant="compact" />
           </div>
         </div>
       </div>
