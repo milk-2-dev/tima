@@ -1,9 +1,7 @@
-import { format } from "date-fns";
 import { Link } from "react-router";
 
 import {
   MapPin,
-  UserRoundCheck,
   Timer,
   CalendarDays,
   Settings2,
@@ -17,7 +15,7 @@ import { AvailableSpots } from "@/components/events/AvailableSpots";
 import type { EventItem } from "@/types/app.types";
 import { getDistanceKm } from "@/lib/utils";
 
-import { isFull } from "@/helpers";
+import { isFull, getEventTime, getFormatedDate } from "@/helpers";
 
 import { useEventsStore } from "@/stores/eventsStore";
 
@@ -26,20 +24,7 @@ function EventCard({ itemData }: { itemData: EventItem }) {
   const { setHoveredEvent } = useEventsStore();
 
   const full = isFull(itemData);
-
-  const startDateString: string = format(
-    new Date(itemData.start_datetime),
-    "E dd MMM	yyyy"
-  ); //itemData.start_datetime.split("T")[0];
-  const startTimeString: string = itemData.start_datetime
-    .split("T")[1]
-    .slice(0, 5);
-  const endTimeString: string | null =
-    itemData.end_datetime && itemData.end_datetime.split("T")[1].slice(0, 5);
-
-  const eventTime = `${startTimeString}${
-    endTimeString ? ` - ${endTimeString}` : ""
-  }`;
+  const eventTime = getEventTime(itemData);
 
   const [lng, lat] = itemData.location.coordinates;
 
@@ -68,7 +53,9 @@ function EventCard({ itemData }: { itemData: EventItem }) {
         <div className="w-full flex items-center gap-4">
           <ItemContent className="me-2">
             <ItemTitle className="font-semibold text-sm">
-              <Link to={`/events/${itemData.id}`} id={`event-${itemData.id}`}>{itemData.title}</Link>
+              <Link to={`/events/${itemData.id}`} id={`event-${itemData.id}`}>
+                {itemData.title}
+              </Link>
             </ItemTitle>
           </ItemContent>
         </div>
@@ -90,11 +77,13 @@ function EventCard({ itemData }: { itemData: EventItem }) {
         <div className="min-w-1/2">
           <div className="flex items-center">
             <CalendarDays size={16} className="text-muted-foreground" />
-            <span className="ms-2 shrink-0">{startDateString}</span>
+            <span className="ms-2 shrink-0">
+              {getFormatedDate(itemData.start_datetime)}
+            </span>
           </div>
           <div className="flex items-center">
             <Timer size={16} className="text-muted-foreground" />
-            <span className="ms-2 shrink-0">{eventTime}</span>
+            <span className="ms-2 shrink-0">{eventTime.getRange()}</span>
           </div>
         </div>
 

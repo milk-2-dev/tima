@@ -37,7 +37,7 @@ export function AvailableSpots({
   if (variant === "badge") {
     return (
       <span
-        className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium border ${getColor()}`}
+        className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium border ${showProgress && getColor()}`}
       >
         {getIcon()}
         {full ? "Заповнено" : `${available} вільних`}
@@ -49,7 +49,7 @@ export function AvailableSpots({
     return (
       <div
         className={`flex items-center gap-1.5 text-sm ${
-          getColor().split(" ")[0]
+          showProgress && getColor().split(" ")[0]
         }`}
       >
         <Users className="w-4 h-4" />
