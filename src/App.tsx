@@ -6,7 +6,7 @@ import { useEvents } from "@/hooks/useEvents";
 
 import "./App.css";
 
-import Header from "@/components/Header";
+import FiltersPanel from "@/components/FiltersPanel";
 import EventList from "@/components/EventsList";
 import { EventsMap } from "@/components/EventsMap";
 
@@ -43,7 +43,7 @@ function App() {
 
   return (
     <div className="flex flex-col h-screen">
-      <Header
+      <FiltersPanel
         loading={isLoadingLocation}
         filters={filters}
         onChangeFilters={setFilters}
