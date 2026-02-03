@@ -20,7 +20,7 @@ const MapPopup = ({ map, activeFeature }) => {
     popupRef.current = new mapboxgl.Popup({
       closeOnClick: false,
       offset: 20,
-      maxWidth: '380px',
+      maxWidth: "380px",
     });
 
     return () => {
@@ -49,7 +49,7 @@ const MapPopup = ({ map, activeFeature }) => {
     <>
       {createPortal(
         <div className="portal-content">
-          {activeFeature && <EventCard itemData={activeFeature} />}
+          {activeFeature && <EventCard itemData={activeFeature} mode="map" />}
         </div>,
         contentRef.current
       )}

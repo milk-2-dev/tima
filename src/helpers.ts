@@ -51,3 +51,12 @@ export function getEventTime(event: EventItem) {
 export function getFormatedDate(dateString: string) {
   return format(new Date(dateString), "E, dd MMM	yyyy");
 }
+
+export const sportColors = {
+  volleyball: "bg-orange-100 text-orange-700",
+  football: "bg-green-100 text-green-700",
+  basketball: "bg-amber-100 text-amber-700",
+  tennis: "bg-lime-100 text-lime-700",
+  swimming: "bg-cyan-100 text-cyan-700",
+  running: "bg-rose-100 text-rose-700",
+};

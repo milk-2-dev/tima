@@ -37,30 +37,28 @@ function EventsList({ events, loading, hasMore, loadMore }: Props) {
   }, [inView, hasMore, loading, loadMore]);
 
   return (
-    <div className="flex w-full max-w-md flex-col gap-4">
-      <div className="flex flex-col">
-        {events.length > 0 &&
-          events.map((item: EventItem) => {
-            return (
-              <div
-                className="p-4 hover:bg-accent hover:cursor-default"
-                key={item.id}
-              >
-                <EventCard itemData={item} />
-              </div>
-            );
-          })}
+    <div className="grid gap-4 grid-cols-1 xl:grid-cols-2">
+      {events.length > 0 &&
+        events.map((item: EventItem) => {
+          return (
+            <div
+              className="hover:cursor-default"
+              key={item.id}
+            >
+              <EventCard itemData={item} />
+            </div>
+          );
+        })}
 
-        {!loading && events.length === 0 && <EventsListIsEmpty />}
+      {!loading && events.length === 0 && <EventsListIsEmpty />}
 
-        {hasMore && (
-          <div ref={ref}>
-            <SkeletonDemo />
-            <div className="my-4" />
-            <SkeletonDemo />
-          </div>
-        )}
-      </div>
+      {hasMore && (
+        <div ref={ref}>
+          <SkeletonDemo />
+          <div className="my-4" />
+          <SkeletonDemo />
+        </div>
+      )}
     </div>
   );
 }
