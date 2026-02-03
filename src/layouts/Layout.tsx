@@ -10,7 +10,9 @@ function Layout() {
       <Header />
 
       {/* Main content */}
-      <Outlet />
+      <main className="min-h-screen bg-slate-50">
+        <Outlet />
+      </main>
 
       <Footer />
     </div>

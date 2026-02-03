@@ -127,123 +127,77 @@ function FiltersPanel({ filters, onChangeFilters, loading }: Props) {
   };
 
   return (
-    <aside className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
-      <div className="flex flex-col items-start justify-between w-full gap-2 py-4 px-4 sm:flex-row sm:items-center sm:gap-0 md:h-16">
-        {!loading && (
-          <div className="flex w-full gap-4 sm:justify-between">
-            <div className="flex w-3/12">
-              <LocationFilter
-                placeType={filters.placeType}
-                location={mapCenter}
-                onLocationChange={handleLocationChange}
-              />
+    <aside className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-6">
+      {!loading && (
+        <div className="flex flex-col lg:flex-row gap-3">
+          <div className="flex w-3/12">
+            <LocationFilter
+              placeType={filters.placeType}
+              location={mapCenter}
+              onLocationChange={handleLocationChange}
+            />
 
-              <div className="relative -ms-px w-3/8">
-                <Input
-                  id={radiusInput}
-                  className="rounded-s-none shadow-none [direction:inherit] peer pe-8 text-right"
-                  placeholder="0"
-                  type="text"
-                  inputMode="decimal"
-                  disabled={!mapCenter}
-                  value={radiusValue}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (/^\d*$/.test(value)) {
-                      setRadiusValue(Number(value));
-                    }
-                  }}
-                  onBlur={handleRadiusChange.bind(null, radiusValue)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.currentTarget.blur();
-                    }
-                  }}
-                  aria-label="Enter radius in kilometers"
-                />
-                <span className="text-muted-foreground pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-3 text-sm peer-disabled:opacity-50">
-                  km
-                </span>
-              </div>
-            </div>
-            <div>
-              {isLoadingTypes ? (
-                "Loading..."
-              ) : (
-                <Select
-                  value={eventCategoryValue}
-                  onValueChange={(value) => {
-                    setEventCategoryValue(value);
-                    onChangeFilters({ ...filters, eventCategoryId: value });
-                  }}
-                >
-                  <SelectTrigger id={eventCategorySelect}>
-                    <SelectValue placeholder="Chess" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {isSuccess &&
-                        eventCategories.map((type) => (
-                          <SelectItem key={type.id} value={type.id}>
-                            {type.title}
-                          </SelectItem>
-                        ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
-            <div>
-              <DateFilter
-                selectedValue={selectedDate}
-                onSelectedValueChanged={handleDateChange.bind(null)}
+            <div className="relative -ms-px w-3/8">
+              <Input
+                id={radiusInput}
+                className="rounded-s-none shadow-none [direction:inherit] peer pe-8 text-right"
+                placeholder="0"
+                type="text"
+                inputMode="decimal"
+                disabled={!mapCenter}
+                value={radiusValue}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (/^\d*$/.test(value)) {
+                    setRadiusValue(Number(value));
+                  }
+                }}
+                onBlur={handleRadiusChange.bind(null, radiusValue)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.currentTarget.blur();
+                  }
+                }}
+                aria-label="Enter radius in kilometers"
               />
-            </div>
-            <div>
-              <Dialog>
-                <form>
-                  <DialogTrigger asChild>
-                    <Button variant="outline">Open Dialog</Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                      <DialogTitle>Edit profile</DialogTitle>
-                      <DialogDescription>
-                        Make changes to your profile here. Click save when
-                        you&apos;re done.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4">
-                      <div className="grid gap-3">
-                        <Label htmlFor="name-1">Name</Label>
-                        <Input
-                          id="name-1"
-                          name="name"
-                          defaultValue="Pedro Duarte"
-                        />
-                      </div>
-                      <div className="grid gap-3">
-                        <Label htmlFor="username-1">Username</Label>
-                        <Input
-                          id="username-1"
-                          name="username"
-                          defaultValue="@peduarte"
-                        />
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <DialogClose asChild>
-                        <Button variant="outline">Cancel</Button>
-                      </DialogClose>
-                      <Button type="submit">Save changes</Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </form>
-              </Dialog>
+              <span className="text-muted-foreground pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-3 text-sm peer-disabled:opacity-50">
+                km
+              </span>
             </div>
           </div>
-        )}
-      </div>
+          <div>
+            {isLoadingTypes ? (
+              "Loading..."
+            ) : (
+              <Select
+                value={eventCategoryValue}
+                onValueChange={(value) => {
+                  setEventCategoryValue(value);
+                  onChangeFilters({ ...filters, eventCategoryId: value });
+                }}
+              >
+                <SelectTrigger id={eventCategorySelect}>
+                  <SelectValue placeholder="Chess" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {isSuccess &&
+                      eventCategories.map((type) => (
+                        <SelectItem key={type.id} value={type.id}>
+                          {type.title}
+                        </SelectItem>
+                      ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+          <DateFilter
+            selectedValue={selectedDate}
+            onSelectedValueChanged={handleDateChange.bind(null)}
+          />
+        </div>
+      )}
     </aside>
   );
 }
